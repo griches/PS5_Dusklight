@@ -77,10 +77,12 @@ Known limits:
   been tried. The game makes that folder at its first start, and from this
   build on opens it to the FTP server at every start: with v0.2.0 an upload
   into it is refused until the folder's permissions are changed.
-- **Disc selection uses a controller-operated list.** The PS5 has no desktop file
-  dialog. The list includes protected images and the root of USB0/USB1, labels
-  PAL/USA/Japan, and retains an available saved choice. Discovery and ISO backup run only after **Select Disc Image** opens. GameCube PAL `GZ2P01` uses upstream's PAL code and languages;
-  USA and Japan keep their own regions. All three currently require revision 0.
+- **Disc selection uses a controller folder/file browser.** Navigate USB0/USB1
+  subfolders or /data, select an ISO/GCM/CISO and use it directly at that path.
+  No internal copy is required. No disc is copied or restored automatically.
+  App-local images require explicit **Move and use ISO** to protect them before
+  a future Store update. GameCube PAL `GZ2P01` uses upstream's PAL code/languages;
+  USA and Japan retain their own regions. All three require revision 0.
 
 ## Install
 
@@ -118,37 +120,33 @@ Build.) It contains no game data.
    Copy `sce_sys/icon0.png` with the first upload: ShadowMountPlus will not
    register a title without its icon, and after two failed tries it skips that
    title until it is restarted.
-3. Copy your disc image to the persistent image folder, under any name ending in
-   `.iso`, `.gcm` or `.ciso`:
+3. Put your `.iso`, `.gcm` or `.ciso` on a USB drive or a folder outside the
+   application, for example `/data/dusklight/PPSA99305/images/your-disc.iso`.
+   Subdirectories are supported. No internal copy is needed for USB play.
+4. Start Dusklight and open **Select Disc Image**. Navigate from **Locations** to
+   your disc, select it and let normal disc verification finish. The browser
+   stays over the illustrated menu, with cancelable folder-reading feedback.
+   With PAL, the pre-launch game-language setting offers German and the other
+   PAL languages. A changed disc/language can require closing and reopening.
 
-   ```text
-   /data/dusklight/PPSA99305/images/your-disc.iso
-   ```
+If an ISO is already beside `eboot.bin`, the browser offers **Move and use ISO**.
+Only this explicit action moves that selected disc to the persistent images
+folder. A same-filesystem rename needs no duplicate allocation. Across filesystems
+a temporary copy is byte-verified before removing the selected original, with
+copy/verification progress. Cancel/error retains the source. Other images are
+never moved. Different same-name images get numbered names without overwriting.
+No launch or directory scan bulk-copies ISOs or restores deleted copies.
 
-   Create that folder with your file manager if needed. Images already beside
-   `eboot.bin` are copied there on the first protected launch, byte-verified and
-   atomically finalized. The original is retained. The first copy can take several
-   minutes; the illustrated menu appears first. Open **Select Disc Image**
-   to run the backup with progress and allow room for another complete image.
-   Interrupted copies retry safely when the picker is reopened. Unchanged
-   verified imports use metadata receipts to avoid rereading GB on every launch.
-4. Wait a few seconds for "Dusklight" to appear on the home screen, and start it.
-   Use **Select Disc Image** to choose an image. With a PAL disc, the normal
-   pre-launch game-language setting offers German and the other PAL languages.
-   A changed disc/language may require closing and reopening Dusklight.
+Saves/settings live in `/data/dusklight/PPSA99305/user/`. Existing
+`userdata/TwilitRealm/Dusklight/` files, legacy/portable user data and matching
+Store-backup user data are imported without deleting originals. Protected current
+files take priority. This user-data migration does not import ISO images.
 
-Saves and settings now live in `/data/dusklight/PPSA99305/user/`. Existing
-`userdata/TwilitRealm/Dusklight/` files, legacy/portable data and a matching
-Prospero Store `previous/PPSA99305` backup are imported without deleting originals.
-Protected saves win over older imports. Same-name images with different contents
-receive numbered filenames; no personal image is overwritten. Images on USB
-remain selectable in place.
-
-**Before the first upgrade from an old build, back up images and `userdata/`.**
-An installer can erase the old app folder before the new program gets to run.
-Once a protected copy exists outside that folder, replacing the whole app folder
-does not remove the working ISO, saves or settings. This cannot recover data
-already deleted by an older update without a surviving backup.
+**Before the first upgrade from an old build, preserve images and userdata.**
+An installer can erase the app folder before the new code gets to run. Move an
+app-local ISO outside that folder before any later update, or select one directly
+from USB. A deliberately app-local ISO cannot survive replacement there. Files
+deleted by an older update cannot be recovered without a surviving backup.
 
 Earlier separate test builds passed manual PAL selection and startup.
 The new combined UI/progress candidate still needs its own console test and
@@ -202,8 +200,9 @@ python3 ps5/tools/test-storage.py
 ```
 
 They use this port's actual ISO/CISO reader with ASan/UBSan and cover all three
-GameCube regions, retained USB choices, old userdata layouts, interrupted import,
-same-name conflicts and replacement of the complete app folder. No game data is
+GameCube regions, retained USB choices, old userdata layouts, fresh nested USB browsing, no automatic ISO copies,
++explicit moves, copy/verify cancellation across filesystems, same-name conflicts
++and replacement of the complete app folder. No game data is
 needed. These tests do not establish console sandbox/daemon behavior or gameplay.
 
 Other tools, all in `ps5/tools/`:
