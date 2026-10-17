@@ -10,12 +10,28 @@
 #include <SDL3/SDL_stdinc.h>
 #include <ps5platform/elevation.h>
 #include <ps5platform/libc.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "platform.h"
+
+static int
+application_readable(const char *root)
+{
+   char param[4096];
+   const int length = snprintf(param, sizeof(param), "%s%s%s", root,
+      root[0] && root[strlen(root) - 1] == '/' ? "" : "/", "sce_sys/param.json");
+   if (length < 0 || (size_t)length >= sizeof(param))
+      return 0;
+   FILE *file = fopen(param, "rb");
+   if (!file)
+      return 0;
+   fclose(file);
+   return 1;
+}
 
 __attribute__((constructor)) static void
 ps5_startup(void)
@@ -40,8 +56,15 @@ ps5_startup(void)
    platform_init(PS5_TITLE_NAME);
    if (needs_data_access)
       say("persistent data access: %s", ps5_elevation_status_name(status));
-   char app[4096], download[4096];
-   if (app_cwd == 0 && ps5_getcwd(app, sizeof(app) - 1)) {
+   char app[4096] = {0}, download[4096];
+   /* A title's /app0 alias can be readable while getcwd's parent-directory walk
+    * is refused by its sandbox/nullfs mount. Prefer that validated alias. Only
+    * resolve the held cwd when an elevation transition removed the alias. */
+   if (application_readable("/app0/"))
+      strcpy(app, "/app0/");
+   else if (app_cwd != 0 || !ps5_getcwd(app, sizeof(app) - 1) || !application_readable(app))
+      app[0] = '\0';
+   if (app[0]) {
       const size_t length = strlen(app);
       strcpy(download, "/download0");
       if (length >= 5 && strcmp(app + length - 5, "/app0") == 0)
@@ -53,7 +76,9 @@ ps5_startup(void)
       setenv("DUSK_PS5_APP_ROOT", app, 1);
       setenv("DUSK_PS5_DOWNLOAD_ROOT", download, 1);
       SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "DUSK_PS5_APP_ROOT", app, true);
+      say("application root: %s; download root: %s", app, download);
    } else {
+      say("application root unavailable: chdir=%d errno=%d (%s)", app_cwd, errno, strerror(errno));
       setenv("DUSK_PS5_STORAGE_ERROR", "Cannot resolve this title's mounted application folder. Original files were retained.", 1);
    }
    /* Defaults until game_main sets the protected override before loading data.
