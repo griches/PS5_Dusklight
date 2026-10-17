@@ -1,30 +1,21 @@
 #!/usr/bin/env python3
-# Dusklight for the PlayStation 5 - the DualSense's symbols for the game's button prompts.
 # SPDX-License-Identifier: MIT
-"""Makes ps5/art/glyphs/*.png: replacement textures for the letters on the game's buttons.
+"""PS5 prompts based on Gary Riches' CC0 Kenney glyph generator.
 
-The game draws a button as a coloured shape with a white letter over it, each letter a small
-texture of its own. Dusklight replaces a texture by a file named after it (Dolphin's scheme:
-tex1_<width>x<height>_<hash of its texels>_<format>.png), so each picture here carries the name
-of the letter it stands in for, and nothing of the letter itself: a cross for A, a circle for B,
-a square for X and a triangle for Y, as Dusklight's default mapping has them (A south, B east,
-X west, Y north), and "R1" for Z. The names are the GameCube USA disc's.
-
-The symbols are Kenney's Input Prompts (www.kenney.nl, CC0: ps5/art/kenney/): of each of its
-outlined buttons the outline is dropped, since the game draws the button itself, and what is
-inside is kept.
-
-Needs Python with Pillow.
+HUD labels use the original game's separate shaded button bodies, as Gary's port
+does. Inline prompts include an independently drawn, shaded cap because their
+original textures combine the button body and Nintendo letter in one image.
+No game pixels are read by this generator or included in its output.
 """
 from pathlib import Path
+import json
+from PIL import Image, ImageDraw, ImageChops
 
-from PIL import Image
-
-SCALE = 4  # the replacement is this many times the original's size
+SCALE = 4
 art = Path(__file__).resolve().parent
-out = art / "glyphs"
+out = art/'glyphs'
 out.mkdir(exist_ok=True)
-
+manifest = json.loads((art/'button-textures.json').read_text(encoding='utf-8'))
 
 def inside(source):
     """The picture without its outline: the connected shape with the largest bounds goes."""
@@ -65,12 +56,73 @@ def glyph(name, w, h, source, fill=0.8):
     mask.paste(symbol, ((mask.width - symbol.width) // 2, (mask.height - symbol.height) // 2))
     white = Image.new("RGBA", mask.size, (255, 255, 255, 0))
     white.putalpha(mask)
-    white.save(out / (name + ".png"))
+    return white
 
 
-glyph("tex1_32x46_683dc853245a0f36_0", 32, 46, "playstation_button_cross_outline")     # A
-glyph("tex1_24x40_b191153a917b3b50_0", 24, 40, "playstation_button_circle_outline")    # B
-glyph("tex1_32x45_3b03f19ac102dd38_0", 32, 45, "playstation_button_square_outline")    # X
-glyph("tex1_32x40_a57e14b2809290fc_0", 32, 40, "playstation_button_triangle_outline")  # Y
-glyph("tex1_24x40_1868b6990a352fae_2", 24, 40, "playstation_trigger_r1_outline", 0.95)  # Z
-print(sorted(p.name for p in out.glob("*.png")))
+
+def inline_prompt(symbol):
+    size = 192
+    mask = Image.new('L', (size,size))
+    draw = ImageDraw.Draw(mask)
+    shoulder = 'trigger' in symbol
+    if shoulder:
+        draw.rounded_rectangle((10,47,182,145),radius=26,fill=255)
+    else:
+        draw.ellipse((15,15,177,177),fill=255)
+    tint = ((72,133,211) if 'cross' in symbol else
+            (207,69,75) if 'circle' in symbol else (155,160,171))
+    image = Image.new('RGBA',(size,size))
+    pixels = image.load()
+    for y in range(size):
+        # A highlight above a darker lower edge gives the inline prompts the
+        # same visual weight as the shaded HUD caps, without copying game art.
+        factor = 1.22 - 0.65*y/(size-1)
+        for x in range(size):
+            pixels[x,y] = tuple(min(255,round(c*factor)) for c in tint)+(mask.getpixel((x,y)),)
+    edge = Image.new('L',(size,size))
+    ed = ImageDraw.Draw(edge)
+    if shoulder:
+        ed.rounded_rectangle((10,47,182,145),radius=26,outline=180,width=5)
+    else:
+        ed.ellipse((15,15,177,177),outline=180,width=5)
+    shadow = Image.new('RGBA',(size,size),(20,25,34,0))
+    shadow.putalpha(edge)
+    image = Image.alpha_composite(image,shadow)
+    if symbol in ('options','stick_l','stick_r'):
+        marks = Image.new('L',(size,size))
+        md = ImageDraw.Draw(marks)
+        if symbol == 'options':
+            for y in (69,96,123): md.line((63,y,129,y),fill=255,width=7)
+        elif symbol == 'stick_l':
+            md.line((76,61,76,131,122,131),fill=255,width=10)
+        else:
+            md.line((71,135,71,61,104,61,124,75,124,94,104,108,71,108),fill=255,width=9)
+            md.line((102,108,132,135),fill=255,width=9)
+    else:
+        source = inside(symbol)
+        extent = (136,60) if shoulder else (94,94)
+        scale = min(extent[0]/source.width,extent[1]/source.height)
+        source = source.resize((round(source.width*scale),round(source.height*scale)),Image.Resampling.LANCZOS)
+        marks = Image.new('L',(size,size))
+        marks.paste(source,((size-source.width)//2,(size-source.height)//2))
+    white = Image.new('RGBA',(size,size),'white')
+    white.putalpha(marks)
+    return Image.alpha_composite(image,white)
+
+
+lines = ['// Generated by ps5/art/make-glyphs.py; identifiers only, no game image data.']
+for item in manifest:
+    key = item['key']
+    parts = key.split('_')
+    w,h = map(int,parts[1].split('x'))
+    fmt = int(parts[-1])
+    if item['style'] == 'Backing':
+        continue
+    if item['style'].startswith('Inline'):
+        picture = inline_prompt(item['symbol'])
+    else:
+        picture = glyph(key,w,h,item['symbol'],0.95 if item['style']=='Shoulder' else 0.8)
+    picture.save(out/(item.get('replacement_key',key)+'.png'))
+    lines.append(f'    {{{w}, {h}, {fmt}, 0x{parts[2]}ULL, Style::{item["style"]}}},')
+(art/'generated-button-textures.inc').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+print('Generated',len(lines)-1,'PS5 prompts with shaded inline caps and HUD labels')

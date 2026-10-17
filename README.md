@@ -1,3 +1,5 @@
+> **Draft candidate — HOLD for console testing.** See [PAL/UI test notes](PAL-UI-TESTING.md) for the shared five-language menu, controller picker, progress display and Gary-style buttons.
+
 # Dusklight for PlayStation 5
 
 [![stars](https://img.shields.io/github/stars/griches/PS5_Dusklight?style=flat)](https://github.com/griches/PS5_Dusklight/stargazers)
@@ -77,8 +79,7 @@ Known limits:
   into it is refused until the folder's permissions are changed.
 - **Disc selection uses a controller-operated list.** The PS5 has no desktop file
   dialog. The list includes protected images and the root of USB0/USB1, labels
-  PAL/USA/Japan, and retains an available saved choice. Only an unambiguous image
-  is auto-selected. GameCube PAL `GZ2P01` uses upstream's PAL code and languages;
+  PAL/USA/Japan, and retains an available saved choice. Discovery and ISO backup run only after **Select Disc Image** opens. GameCube PAL `GZ2P01` uses upstream's PAL code and languages;
   USA and Japan keep their own regions. All three currently require revision 0.
 
 ## Install
@@ -127,8 +128,9 @@ Build.) It contains no game data.
    Create that folder with your file manager if needed. Images already beside
    `eboot.bin` are copied there on the first protected launch, byte-verified and
    atomically finalized. The original is retained. The first copy can take several
-   minutes; leave the app open until its menu appears and allow room for another
-   complete image. Interrupted copies retry safely on the next launch. Unchanged
+   minutes; the illustrated menu appears first. Open **Select Disc Image**
+   to run the backup with progress and allow room for another complete image.
+   Interrupted copies retry safely when the picker is reopened. Unchanged
    verified imports use metadata receipts to avoid rereading GB on every launch.
 4. Wait a few seconds for "Dusklight" to appear on the home screen, and start it.
    Use **Select Disc Image** to choose an image. With a PAL disc, the normal
@@ -148,9 +150,9 @@ Once a protected copy exists outside that folder, replacing the whole app folder
 does not remove the working ISO, saves or settings. This cannot recover data
 already deleted by an older update without a surviving backup.
 
-The new PAL/picker/update protection has host tests; this specific port's patched
-build still needs a console test, including filesystem access and a real Store
-update. Earlier USA runtime observations in the Status table describe the
+Earlier separate test builds passed manual PAL selection and startup.
+The new combined UI/progress candidate still needs its own console test and
+a real Store update has not been tested. Earlier USA runtime observations in the Status table describe the
 unmodified release, not proof of this patch's runtime behavior.
 
 **The disc image.** Dusklight's own terms apply: dump your own copy of the game

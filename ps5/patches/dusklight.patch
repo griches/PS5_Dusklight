@@ -10,6 +10,87 @@ diff --git a/extern/borealis b/extern/borealis
 @@ -1 +1 @@
 -Subproject commit 4ac5e7052a8c49a122f8d57f626b5c75c5ca6968
 +Subproject commit 4ac5e7052a8c49a122f8d57f626b5c75c5ca6968-dirty
+diff --git a/files.cmake b/files.cmake
+index 18b44da..c6b5e05 100644
+--- a/files.cmake
++++ b/files.cmake
+@@ -1560,6 +1560,7 @@ set(DUSK_FILES
+         src/dusk/scope_guard.hpp
+         src/dusk/save_manager.cpp
+         src/dusk/save_manager.hpp
++        src/dusk/ps5_buttons.cpp
+         src/dusk/settings.cpp
+         src/dusk/speedrun.cpp
+         src/dusk/stubs.cpp
+@@ -1648,6 +1649,8 @@ set(DUSK_FILES
+         src/dusk/ui/pane.hpp
+         src/dusk/ui/popover.cpp
+         src/dusk/ui/popover.hpp
++        src/dusk/ui/localization.cpp
++        src/dusk/ui/ps5_disc_picker.cpp
+         src/dusk/ui/prelaunch.cpp
+         src/dusk/ui/prelaunch.hpp
+         src/dusk/ui/preset.cpp
+diff --git a/libs/JSystem/src/J2DGraph/J2DPicture.cpp b/libs/JSystem/src/J2DGraph/J2DPicture.cpp
+index 774b3d3..f56201b 100644
+--- a/libs/JSystem/src/J2DGraph/J2DPicture.cpp
++++ b/libs/JSystem/src/J2DGraph/J2DPicture.cpp
+@@ -1,4 +1,5 @@
+ #include "JSystem/JSystem.h" // IWYU pragma: keep
++#include "dusk/ps5_buttons.hpp"
+ 
+ #include "JSystem/J2DGraph/J2DPicture.h"
+ #include "JSystem/J2DGraph/J2DScreen.h"
+@@ -530,6 +531,9 @@ void J2DPicture::draw(f32 x, f32 y, f32 width, f32 height, bool mirrorX, bool mi
+                       bool rotate90) {
+     GX_AND_TRACY_SCOPED("J2DPicture::draw")
+     if (isVisible() && mTextureNum != 0 && mTexture[0] != NULL) {
++#ifdef __PROSPERO__
++        if (dusk::ps5_buttons::draw(*this, x, y, width, height)) return;
++#endif
+         f32 x2 = x + width;
+         f32 y2 = y + height;
+         for (u8 i = 0; i < mTextureNum; i++) {
+@@ -651,6 +655,9 @@ void J2DPicture::drawTexCoord(f32 param_0, f32 param_1, f32 param_2, f32 param_3
+                               s16 param_5, s16 param_6, s16 param_7, s16 param_8, s16 param_9,
+                               s16 param_10, s16 param_11, Mtx* param_12) {
+     if (mTextureNum != 0) {
++#ifdef __PROSPERO__
++        if (dusk::ps5_buttons::draw(*this, param_0, param_1, param_2, param_3, param_12)) return;
++#endif
+         for (u8 i = 0; i < mTextureNum; i++) {
+             load(i);
+         }
+diff --git a/libs/JSystem/src/J2DGraph/J2DPictureEx.cpp b/libs/JSystem/src/J2DGraph/J2DPictureEx.cpp
+index ba69048..781f4eb 100644
+--- a/libs/JSystem/src/J2DGraph/J2DPictureEx.cpp
++++ b/libs/JSystem/src/J2DGraph/J2DPictureEx.cpp
+@@ -1,4 +1,5 @@
+ #include "JSystem/JSystem.h" // IWYU pragma: keep
++#include "dusk/ps5_buttons.hpp"
+ 
+ #include "JSystem/J2DGraph/J2DPictureEx.h"
+ #include "JSystem/J2DGraph/J2DMaterial.h"
+@@ -119,6 +120,9 @@ void J2DPictureEx::drawTexCoord(f32 param_0, f32 param_1, f32 param_2, f32 param
+     if (mMaterial && !mMaterial->isVisible()) {
+         return;
+     }
++#ifdef __PROSPERO__
++    if (dusk::ps5_buttons::draw(*this, param_0, param_1, param_2, param_3, param_12)) return;
++#endif
+     GXLoadPosMtxImm(auStack_88, 0);
+     JUtility::TColor TStack_8c = mCornerColor[0];
+     JUtility::TColor TStack_90 = mCornerColor[1];
+@@ -418,6 +422,9 @@ void J2DPictureEx::draw(f32 param_0, f32 param_1, f32 width, f32 height, bool pa
+     if (!mMaterial->isVisible()) {
+         return;
+     }
++#ifdef __PROSPERO__
++    if (dusk::ps5_buttons::draw(*this, param_0, param_1, width, height)) return;
++#endif
+ 
+     GXClearVtxDesc();
+     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
 diff --git a/libs/JSystem/src/J2DGraph/J2DScreen.cpp b/libs/JSystem/src/J2DGraph/J2DScreen.cpp
 index 603ab51..267d976 100644
 --- a/libs/JSystem/src/J2DGraph/J2DScreen.cpp
@@ -88,6 +169,1157 @@ index 603ab51..267d976 100644
      if (!(param_1 & 0x1F0000)) {
          clean();
      }
+diff --git a/res/locales/de.json b/res/locales/de.json
+new file mode 100644
+index 0000000..a79a2d0
+--- /dev/null
++++ b/res/locales/de.json
+@@ -0,0 +1,279 @@
++{
++  "presents": "präsentiert",
++  "Play": "Spielen",
++  "Settings": "Einstellungen",
++  "Mods": "Mods",
++  "Quit": "Beenden",
++  "Menu language / Menüsprache": "Menüsprache",
++  "Menu language": "Menüsprache",
++  "Choose the language of the startup interface. Game text has its own language setting. Close and reopen Dusklight after changing this option.": "Wähle die Sprache der Startoberfläche. Die Spielsprache wird separat eingestellt. Schließe und starte Dusklight nach dieser Änderung erneut.",
++  "English": "Englisch",
++  "German": "Deutsch",
++  "French": "Französisch",
++  "Spanish": "Spanisch",
++  "Italian": "Italienisch",
++  "Japanese": "Japanisch",
++  "Cancel": "Abbrechen",
++  "Cancelling...": "Wird abgebrochen …",
++  "Continue": "Weiter",
++  "Continue anyway": "Trotzdem fortfahren",
++  "Back": "Zurück",
++  "Close": "Schließen",
++  "Yes": "Ja",
++  "No": "Nein",
++  "On": "Ein",
++  "Off": "Aus",
++  "Enabled": "Aktiviert",
++  "Disabled": "Deaktiviert",
++  "Default": "Standard",
++  "Auto": "Automatisch",
++  "Unknown": "Unbekannt",
++  "All": "Alle",
++  "Some": "Einige",
++  "None": "Keine",
++  "(none)": "(keine)",
++  "Apply Options": "Änderungen übernehmen",
++  "Restart later": "Später neu starten",
++  "Restart now": "Jetzt neu starten",
++  "A restart is required to apply selected options.": "Die gewählten Änderungen erfordern einen Neustart.",
++  "Close and reopen Dusklight to apply them.": "Schließe und starte Dusklight erneut, um sie zu übernehmen.",
++  "Restart now to apply them immediately?": "Jetzt neu starten, um sie sofort zu übernehmen?",
++  "Changes require a restart.": "Änderungen erfordern einen Neustart.",
++  "Select Disc Image": "ISO auswählen",
++  "Game Disc Images": "Spieldateien",
++  "All Files": "Alle Dateien",
++  "Choose a protected GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Wähle eine gesicherte GameCube-ISO. Ein ISO-Wechsel wird nach dem Neustart von Dusklight wirksam.",
++  "Close Dusklight and copy your USA or European GameCube raw ISO to": "Schließe Dusklight und kopiere deine unkomprimierte europäische oder amerikanische GameCube-ISO nach",
++  ". Then reopen Dusklight and select it here. Wii discs and compressed images are not supported by this PS5 backend.": ". Starte Dusklight danach erneut und wähle die ISO hier aus. Wii-Discs und komprimierte Images werden von diesem PS5-Backend nicht unterstützt.",
++  "Protected disc folder is unavailable": "Der geschützte ISO-Ordner ist nicht verfügbar",
++  "No disc image found.": "Keine ISO gefunden.",
++  "Pending restart.": "Neustart erforderlich.",
++  "Disc ready.": "ISO bereit.",
++  "Disc hash mismatch.": "ISO-Prüfsumme stimmt nicht überein.",
++  "Disc not verified.": "ISO noch nicht geprüft.",
++  "Disc unavailable.": "ISO nicht verfügbar.",
++  "Disc verification error": "Fehler bei der ISO-Prüfung",
++  "Disc verification warning": "Hinweis zur ISO-Prüfung",
++  "Verifying disc image": "ISO wird geprüft",
++  "Opening disc image...": "ISO wird geöffnet …",
++  "The selected disc image is valid.": "Die ausgewählte ISO ist gültig.",
++  "The selected disc image could not be validated.": "Die ausgewählte ISO konnte nicht geprüft werden.",
++  "The selected file is not a valid disc image.": "Die ausgewählte Datei ist keine gültige ISO.",
++  "The selected game is not supported by Dusklight.": "Das ausgewählte Spiel wird von Dusklight nicht unterstützt.",
++  "Unable to read the selected file.": "Die ausgewählte Datei kann nicht gelesen werden.",
++  "The selected disc image did not pass hash verification. It may be corrupt or modified.": "Die Prüfsumme der ausgewählten ISO stimmt nicht überein. Die Datei könnte beschädigt oder verändert sein.",
++  "Disc verification was canceled. Dusklight cannot guarantee the selected disc image is compatible.": "Die ISO-Prüfung wurde abgebrochen. Die Kompatibilität der ausgewählten Datei ist damit nicht bestätigt.",
++  "You may proceed at your own risk.": "Du kannst auf eigenes Risiko fortfahren.",
++  "Dusklight does not currently support the Wii's Korean version.": "Die koreanische Wii-Fassung wird derzeit nicht unterstützt.",
++  "Language unavailable": "Sprache nicht verfügbar",
++  "is not available on this disc. Language has been reset to": "ist auf dieser Disc nicht verfügbar. Die Sprache wurde zurückgesetzt auf",
++  "Checking for updates...": "Updates werden gesucht …",
++  "Update available!": "Update verfügbar!",
++  "Failed to check for updates": "Updatesuche fehlgeschlagen",
++  "Download {}": "{} herunterladen",
++  "Update is available, but the release did not include a download URL": "Ein Update ist verfügbar, aber es wurde kein Download-Link angegeben",
++  "Welcome to Dusklight": "Willkommen bei Dusklight",
++  "Choose a preset to get started. You can change any setting later from the Settings menu.": "Wähle zunächst eine Voreinstellung. Alle Optionen lassen sich später im Einstellungsmenü ändern.",
++  "Classic": "Klassisch",
++  "Enhancements disabled to match the GameCube version. Good for speedrunning or simple nostalgia!": "Verbesserungen sind deaktiviert, um der GameCube-Fassung zu entsprechen. Geeignet für Speedruns und das ursprüngliche Spielerlebnis.",
++  "Graphics & quality of life tweaks, including some from the Wii U version. Our recommended way to play!": "Grafik- und Komfortverbesserungen, darunter einige aus der Wii-U-Fassung. Die empfohlene Voreinstellung.",
++  "Prelaunch": "Spielstart",
++  "Disc Image": "ISO-Datei",
++  "Data Folder": "Datenordner",
++  "Data Folder Not Changed": "Datenordner nicht geändert",
++  "Current data folder:": "Aktueller Datenordner:",
++  "Open Data Folder": "Datenordner öffnen",
++  "Change Data Folder": "Datenordner ändern",
++  "Portable Mode": "Portabler Modus",
++  "Reset to Default": "Standard wiederherstellen",
++  "Data will be migrated automatically on restart.": "Die Daten werden beim Neustart automatisch übertragen.",
++  "The data folder is where Dusklight stores settings, saves, logs, texture replacements, and other app data.": "Im Datenordner speichert Dusklight Einstellungen, Spielstände, Protokolle, Ersatztexturen und weitere Programmdaten.",
++  "Set the disc image that Dusklight uses to launch the game.": "Wähle die ISO-Datei aus, mit der Dusklight das Spiel startet.",
++  "Language": "Spielsprache",
++  "Graphics Backend": "Grafik-Backend",
++  "Save File Type": "Spielstandformat",
++  "GCI Folder": "GCI-Ordner",
++  "Card Image": "Speicherkarten-Image",
++  "Game": "Spiel",
++  "Gameplay": "Spielablauf",
++  "Video": "Bild",
++  "Audio": "Ton",
++  "Input": "Eingabe",
++  "Inputs": "Eingaben",
++  "Display": "Anzeige",
++  "Interface": "Oberfläche",
++  "General": "Allgemein",
++  "Rendering": "Darstellung",
++  "Resolution": "Auflösung",
++  "Internal Resolution": "Interne Auflösung",
++  "Shadow Resolution": "Schattenauflösung",
++  "Output": "Ausgabe",
++  "Effects": "Effekte",
++  "Post-Processing": "Nachbearbeitung",
++  "Enable VSync": "VSync aktivieren",
++  "Framerate Cap": "Bildratenbegrenzung",
++  "Capped": "Begrenzt",
++  "Unlimited": "Unbegrenzt",
++  "Unlock Framerate": "Bildrate freigeben",
++  "Show FPS Counter": "FPS anzeigen",
++  "Top Left": "Oben links",
++  "Top Right": "Oben rechts",
++  "Bottom Left": "Unten links",
++  "Bottom Right": "Unten rechts",
++  "Lock 4:3 Aspect Ratio": "Seitenverhältnis auf 4:3 begrenzen",
++  "UI Scale": "Menügröße",
++  "HUD Scale": "HUD-Größe",
++  "Menu Scaling Mode": "Skalierung der Spielmenüs",
++  "Toggle Fullscreen": "Vollbild umschalten",
++  "Remember Window Size": "Fenstergröße merken",
++  "Restore Default Window Size": "Standard-Fenstergröße wiederherstellen",
++  "Pause on Focus Lost": "Bei Fokusverlust pausieren",
++  "Output Resampling": "Ausgabeskalierung",
++  "Bloom": "Leuchteffekt",
++  "Bloom Brightness": "Stärke des Leuchteffekts",
++  "Depth of Field": "Tiefenschärfe",
++  "Enable Texture Replacements": "Ersatztexturen aktivieren",
++  "Enable installed texture replacements.": "Installierte Ersatztexturen aktivieren.",
++  "Volume": "Lautstärke",
++  "Master Volume": "Gesamtlautstärke",
++  "Main Music Volume": "Musiklautstärke",
++  "Output Mode": "Tonausgabe",
++  "Stereo (Speakers)": "Stereo (Lautsprecher)",
++  "Stereo (Headphones)": "Stereo (Kopfhörer)",
++  "Enable Reverb": "Nachhall aktivieren",
++  "Dusklight Menu Sounds": "Menütöne von Dusklight",
++  "Play sound effects when navigating the Dusklight menu.": "Beim Navigieren durch die Dusklight-Menüs Töne abspielen.",
++  "Adjusts the volume of all sounds in the game.": "Passt die Lautstärke aller Spieltöne an.",
++  "Adjusts the volume of all music in the game.": "Passt die Lautstärke der gesamten Spielmusik an.",
++  "Enables the reverb effect in game audio.": "Aktiviert den Nachhalleffekt für den Spielton.",
++  "Configure Inputs": "Tastenbelegung",
++  "Open input binding configuration.": "Die Einstellungen zur Tastenbelegung öffnen.",
++  "Camera": "Kamera",
++  "Free Camera": "Freie Kamera",
++  "Free Camera X Sensitivity": "Kameraempfindlichkeit horizontal",
++  "Free Camera Y Sensitivity": "Kameraempfindlichkeit vertikal",
++  "Invert Camera X Axis": "Horizontale Kameraachse umkehren",
++  "Invert Camera Y Axis": "Vertikale Kameraachse umkehren",
++  "Invert First Person X Axis": "Horizontales Zielen umkehren",
++  "Invert First Person Y Axis": "Vertikales Zielen umkehren",
++  "Invert Air/Swim X Axis": "Horizontale Flug-/Schwimmachse umkehren",
++  "Invert Air/Swim Y Axis": "Vertikale Flug-/Schwimmachse umkehren",
++  "Touch": "Touch-Eingabe",
++  "Touch Controls": "Touch-Steuerung",
++  "Touch Targeting": "Zielerfassung per Touch",
++  "Customize Layout": "Anordnung anpassen",
++  "Touch Camera X Sensitivity": "Touch-Kamera horizontal",
++  "Touch Camera Y Sensitivity": "Touch-Kamera vertikal",
++  "Mouse": "Maus",
++  "Mouse Aim": "Mit der Maus zielen",
++  "Mouse Camera": "Kamerasteuerung per Maus",
++  "Mouse/Touch in Menus": "Maus/Touch in Spielmenüs",
++  "Mouse Aim Sensitivity": "Mausempfindlichkeit beim Zielen",
++  "Mouse Camera Sensitivity": "Mausempfindlichkeit der Kamera",
++  "Invert Mouse Y": "Vertikale Mausachse umkehren",
++  "Gyro": "Bewegungssensor",
++  "Gyro Aim": "Zielen per Bewegungssensor",
++  "Gyro Pitch Sensitivity": "Sensor-Empfindlichkeit vertikal",
++  "Gyro Yaw Sensitivity": "Sensor-Empfindlichkeit horizontal",
++  "Gyro Deadband": "Sensor-Totzone",
++  "Gyro Smoothing": "Sensor-Glättung",
++  "Gyro Rollgoal": "Rollgoal per Bewegungssensor",
++  "Rollgoal Sensitivity": "Rollgoal-Empfindlichkeit",
++  "Invert Gyro Pitch": "Vertikale Sensorachse umkehren",
++  "Invert Gyro Yaw": "Horizontale Sensorachse umkehren",
++  "Allow Background Inputs": "Eingaben im Hintergrund erlauben",
++  "Hold": "Halten",
++  "Switch": "Umschalten",
++  "Hybrid": "Kombiniert",
++  "Tools": "Werkzeuge",
++  "Types": "Arten",
++  "Quality of Life": "Komfort",
++  "Tweaks": "Anpassungen",
++  "Cosmetic": "Darstellung",
++  "Difficulty": "Schwierigkeit",
++  "Abilities": "Fähigkeiten",
++  "Cheats": "Cheats",
++  "Resources": "Vorräte",
++  "Normal": "Normal",
++  "Always": "Immer",
++  "After Learning Skill": "Nach Erlernen der Fähigkeit",
++  "Quick Transform (R+Y)": "Schnelle Verwandlung (R+Y)",
++  "Can Transform Anywhere": "Überall verwandeln",
++  "Fast Iron Boots": "Schnelle Eisenstiefel",
++  "Fast Roll": "Schnell rollen",
++  "Fast Spinner": "Schneller Gleiter",
++  "Faster Climbing": "Schneller klettern",
++  "Faster Scene Transitions": "Schnellere Szenenwechsel",
++  "Faster Tears of Light": "Schnellere Strahlentau-Tropfen",
++  "Instant Text": "Sofortiger Text",
++  "Hold B for Instant Text": "B für sofortigen Text halten",
++  "Instant Saves": "Sofort speichern",
++  "Autosave": "Automatisch speichern",
++  "Bigger Wallets": "Größere Geldbörsen",
++  "No Rupee Returns": "Rubine nicht zurücklegen",
++  "Disable Rupee Cutscenes": "Rubin-Sequenzen überspringen",
++  "No Sword Recoil": "Kein Schwert-Rückstoß",
++  "Damage Multiplier": "Schadensmultiplikator",
++  "No Heart Drops": "Keine Herz-Funde",
++  "Instant Death": "Sofortiger Tod",
++  "Double Defense": "Doppelte Abwehr",
++  "Invincible": "Unverwundbar",
++  "Invincible Enemies": "Unverwundbare Gegner",
++  "No Climbing Miss Animation": "Keine Abrutsch-Animation",
++  "No 2nd Fish for Cat": "Kein zweiter Fisch für die Katze",
++  "Button Fishing": "Angeln per Taste",
++  "Aiming Reticle": "Fadenkreuz",
++  "Skip TV Settings Screen": "TV-Einstellungen überspringen",
++  "Disable Letterboxing": "Schwarze Balken deaktivieren",
++  "Disable Cutscene Pillarboxing": "Seitliche Balken in Zwischensequenzen deaktivieren",
++  "Minimal HUD": "Minimales HUD",
++  "Enable Mini-Map Shadows": "Schatten der Minikarte aktivieren",
++  "Enable Rotating Link Doll": "Drehbare Link-Figur aktivieren",
++  "Mirror Mode": "Spiegelmodus",
++  "No Low HP Sound": "Kein Warnton bei wenig Lebensenergie",
++  "No Item Timer": "Funde bleiben liegen",
++  "Magic Armor Behavior": "Verhalten der Magischen Rüstung",
++  "Only During Cutscenes": "Nur in Zwischensequenzen",
++  "Only During Gameplay": "Nur beim Spielen",
++  "On Damage": "Bei Schaden",
++  "Infinite Arrows": "Unendlich viele Pfeile",
++  "Infinite Bombs": "Unendlich viele Bomben",
++  "Infinite Epona Stamina": "Unendliche Ausdauer für Epona",
++  "Infinite Hearts": "Unendliche Herzen",
++  "Infinite Oil": "Unendlich viel Öl",
++  "Infinite Oxygen": "Unendlich viel Sauerstoff",
++  "Infinite Rupees": "Unendlich viele Rubine",
++  "Infinite Seeds": "Unendlich viele Kerne",
++  "Speedrunning": "Speedruns",
++  "Speedrun Mode": "Speedrun-Modus",
++  "Show Input Viewer": "Eingaben anzeigen",
++  "Show Gyro Input Viewer": "Sensor-Eingaben anzeigen",
++  "Show RTA": "Echtzeit anzeigen",
++  "Recording Mode": "Aufnahmemodus",
++  "LiveSplit Connection": "LiveSplit-Verbindung",
++  "Hide Owl Statue Markers": "Eulenstatuen-Markierungen ausblenden",
++  "Show Poe Count on Map": "Irrlicht-Anzahl auf der Karte",
++  "Restore Wii 1.0 Glitches": "Fehler der Wii-Fassung 1.0 wiederherstellen",
++  "Achievements": "Erfolge",
++  "Notifications": "Benachrichtigungen",
++  "Select All": "Alle auswählen",
++  "Select None": "Keine auswählen",
++  "Show Shader Compilation": "Shader-Kompilierung anzeigen",
++  "Show an overlay when shaders are being compiled for your hardware.": "Zeigt einen Hinweis an, während Shader für deine Hardware kompiliert werden.",
++  "Skip Dusklight Main Menu": "Dusklight-Startmenü überspringen",
++  "Check for Dusklight Updates": "Nach Dusklight-Updates suchen",
++  "Enable Advanced Settings": "Erweiterte Einstellungen aktivieren",
++  "Enable Discord Rich Presence": "Discord-Status aktivieren",
++  "Crash Reporting": "Absturzberichte",
++  "Restart to Main Menu": "Zum Startmenü zurückkehren",
++  "Restart Dusklight to the pre-launch menu to change settings, game modes, or mods.": "Kehrt zum Startmenü zurück, um Einstellungen, Spielmodi oder Mods zu ändern.",
++  "Missing Device": "Gerät fehlt",
++  "Searching disc images...": "ISO-Dateien werden gesucht …",
++  "Backing up ISO...": "ISO wird gesichert …",
++  "Verifying backup...": "Sicherung wird geprüft …",
++  "Preparing disc selection": "ISO-Auswahl wird vorbereitet",
++  "Your menu stays visible while files are checked. Original files are retained.": "Das Menü bleibt während der Prüfung sichtbar. Die Originaldateien bleiben erhalten.",
++  "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Wähle eine GameCube-ISO. Ein Wechsel wird nach einem Neustart von Dusklight wirksam.",
++  "Files checked": "Dateien geprüft",
++  "Scan canceled. Original files were retained.": "Suche abgebrochen. Die Originaldateien bleiben erhalten."
++}
+diff --git a/res/locales/es.json b/res/locales/es.json
+new file mode 100644
+index 0000000..ae4dcdc
+--- /dev/null
++++ b/res/locales/es.json
+@@ -0,0 +1,279 @@
++{
++  "presents": "presenta",
++  "Play": "Jugar",
++  "Settings": "Ajustes",
++  "Mods": "Mods",
++  "Quit": "Salir",
++  "Menu language / Menüsprache": "Idioma del menú",
++  "Menu language": "Idioma del menú",
++  "Choose the language of the startup interface. Game text has its own language setting. Close and reopen Dusklight after changing this option.": "Elige el idioma de la interfaz de inicio. El texto del juego tiene su propio ajuste. Cierra y vuelve a abrir Dusklight después de cambiar esta opción.",
++  "English": "Inglés",
++  "German": "Alemán",
++  "French": "Francés",
++  "Spanish": "Español",
++  "Italian": "Italiano",
++  "Japanese": "Japonés",
++  "Cancel": "Cancelar",
++  "Cancelling...": "Cancelando…",
++  "Continue": "Continuar",
++  "Continue anyway": "Continuar de todos modos",
++  "Back": "Atrás",
++  "Close": "Cerrar",
++  "Yes": "Sí",
++  "No": "No",
++  "On": "Activado",
++  "Off": "Desactivado",
++  "Enabled": "Activado",
++  "Disabled": "Desactivado",
++  "Default": "Predeterminado",
++  "Auto": "Automático",
++  "Unknown": "Desconocido",
++  "All": "Todo",
++  "Some": "Algunos",
++  "None": "Ninguno",
++  "(none)": "(ninguno)",
++  "Apply Options": "Aplicar opciones",
++  "Restart later": "Reiniciar más tarde",
++  "Restart now": "Reiniciar ahora",
++  "A restart is required to apply selected options.": "Es necesario reiniciar para aplicar las opciones seleccionadas.",
++  "Close and reopen Dusklight to apply them.": "Cierra y vuelve a abrir Dusklight para aplicarlas.",
++  "Restart now to apply them immediately?": "¿Reiniciar ahora para aplicarlas inmediatamente?",
++  "Changes require a restart.": "Los cambios requieren reiniciar.",
++  "Select Disc Image": "Seleccionar imagen de disco",
++  "Game Disc Images": "Imágenes de discos de juego",
++  "All Files": "Todos los archivos",
++  "Choose a protected GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Elige una imagen de disco GameCube protegida. El cambio de disco se aplicará al reiniciar Dusklight.",
++  "Close Dusklight and copy your USA or European GameCube raw ISO to": "Cierra Dusklight y copia tu ISO GameCube sin comprimir de EE. UU. o Europa en",
++  ". Then reopen Dusklight and select it here. Wii discs and compressed images are not supported by this PS5 backend.": ". Después vuelve a abrir Dusklight y selecciónala aquí. Este motor PS5 no admite discos Wii ni imágenes comprimidas.",
++  "Protected disc folder is unavailable": "La carpeta de discos protegida no está disponible",
++  "No disc image found.": "No se encontró ninguna imagen de disco.",
++  "Pending restart.": "Reinicio pendiente.",
++  "Disc ready.": "Disco listo.",
++  "Disc hash mismatch.": "La huella del disco no coincide.",
++  "Disc not verified.": "Disco sin verificar.",
++  "Disc unavailable.": "Disco no disponible.",
++  "Disc verification error": "Error de verificación del disco",
++  "Disc verification warning": "Advertencia de verificación del disco",
++  "Verifying disc image": "Verificando imagen de disco",
++  "Opening disc image...": "Abriendo imagen de disco…",
++  "The selected disc image is valid.": "La imagen de disco seleccionada es válida.",
++  "The selected disc image could not be validated.": "No se pudo validar la imagen de disco seleccionada.",
++  "The selected file is not a valid disc image.": "El archivo seleccionado no es una imagen de disco válida.",
++  "The selected game is not supported by Dusklight.": "Dusklight no admite el juego seleccionado.",
++  "Unable to read the selected file.": "No se puede leer el archivo seleccionado.",
++  "The selected disc image did not pass hash verification. It may be corrupt or modified.": "La imagen de disco seleccionada no superó la verificación de huella. Puede estar dañada o modificada.",
++  "Disc verification was canceled. Dusklight cannot guarantee the selected disc image is compatible.": "Se canceló la verificación del disco. Dusklight no puede garantizar la compatibilidad de la imagen seleccionada.",
++  "You may proceed at your own risk.": "Puedes continuar bajo tu responsabilidad.",
++  "Dusklight does not currently support the Wii's Korean version.": "Dusklight aún no admite la versión coreana de Wii.",
++  "Language unavailable": "Idioma no disponible",
++  "is not available on this disc. Language has been reset to": "no está disponible en este disco. El idioma se ha restablecido a",
++  "Checking for updates...": "Buscando actualizaciones…",
++  "Update available!": "¡Actualización disponible!",
++  "Failed to check for updates": "No se pudieron buscar actualizaciones",
++  "Download {}": "Descargar {}",
++  "Update is available, but the release did not include a download URL": "Hay una actualización disponible, pero la publicación no incluye un enlace de descarga",
++  "Welcome to Dusklight": "Bienvenido a Dusklight",
++  "Choose a preset to get started. You can change any setting later from the Settings menu.": "Elige un preajuste para empezar. Puedes cambiar cualquier opción más tarde desde Ajustes.",
++  "Classic": "Clásico",
++  "Enhancements disabled to match the GameCube version. Good for speedrunning or simple nostalgia!": "Mejoras desactivadas para reproducir la versión GameCube. ¡Ideal para speedruns o nostalgia!",
++  "Graphics & quality of life tweaks, including some from the Wii U version. Our recommended way to play!": "Mejoras gráficas y de comodidad, incluidas algunas de Wii U. ¡Nuestra forma recomendada de jugar!",
++  "Prelaunch": "Inicio",
++  "Disc Image": "Imagen de disco",
++  "Data Folder": "Carpeta de datos",
++  "Data Folder Not Changed": "Carpeta de datos sin cambios",
++  "Current data folder:": "Carpeta de datos actual:",
++  "Open Data Folder": "Abrir carpeta de datos",
++  "Change Data Folder": "Cambiar carpeta de datos",
++  "Portable Mode": "Modo portátil",
++  "Reset to Default": "Restablecer valores predeterminados",
++  "Data will be migrated automatically on restart.": "Los datos se migrarán automáticamente al reiniciar.",
++  "The data folder is where Dusklight stores settings, saves, logs, texture replacements, and other app data.": "La carpeta de datos contiene los ajustes, partidas, registros, texturas de sustitución y otros datos de Dusklight.",
++  "Set the disc image that Dusklight uses to launch the game.": "Elige la imagen de disco que usará Dusklight para iniciar el juego.",
++  "Language": "Idioma",
++  "Graphics Backend": "Motor gráfico",
++  "Save File Type": "Tipo de archivo de guardado",
++  "GCI Folder": "Carpeta GCI",
++  "Card Image": "Imagen de tarjeta de memoria",
++  "Game": "Juego",
++  "Gameplay": "Jugabilidad",
++  "Video": "Vídeo",
++  "Audio": "Audio",
++  "Input": "Controles",
++  "Inputs": "Controles",
++  "Display": "Pantalla",
++  "Interface": "Interfaz",
++  "General": "General",
++  "Rendering": "Renderizado",
++  "Resolution": "Resolución",
++  "Internal Resolution": "Resolución interna",
++  "Shadow Resolution": "Resolución de sombras",
++  "Output": "Salida",
++  "Effects": "Efectos",
++  "Post-Processing": "Posprocesado",
++  "Enable VSync": "Activar sincronización vertical",
++  "Framerate Cap": "Límite de fotogramas",
++  "Capped": "Limitado",
++  "Unlimited": "Sin límite",
++  "Unlock Framerate": "Desbloquear fotogramas",
++  "Show FPS Counter": "Mostrar contador de FPS",
++  "Top Left": "Arriba a la izquierda",
++  "Top Right": "Arriba a la derecha",
++  "Bottom Left": "Abajo a la izquierda",
++  "Bottom Right": "Abajo a la derecha",
++  "Lock 4:3 Aspect Ratio": "Fijar relación de aspecto 4:3",
++  "UI Scale": "Escala de interfaz",
++  "HUD Scale": "Escala del HUD",
++  "Menu Scaling Mode": "Modo de escala del menú",
++  "Toggle Fullscreen": "Alternar pantalla completa",
++  "Remember Window Size": "Recordar tamaño de ventana",
++  "Restore Default Window Size": "Restaurar tamaño de ventana predeterminado",
++  "Pause on Focus Lost": "Pausar al perder el foco",
++  "Output Resampling": "Remuestreo de salida",
++  "Bloom": "Resplandor",
++  "Bloom Brightness": "Brillo del resplandor",
++  "Depth of Field": "Profundidad de campo",
++  "Enable Texture Replacements": "Activar texturas de sustitución",
++  "Enable installed texture replacements.": "Activa las texturas de sustitución instaladas.",
++  "Volume": "Volumen",
++  "Master Volume": "Volumen general",
++  "Main Music Volume": "Volumen de música",
++  "Output Mode": "Modo de salida",
++  "Stereo (Speakers)": "Estéreo (altavoces)",
++  "Stereo (Headphones)": "Estéreo (auriculares)",
++  "Enable Reverb": "Activar reverberación",
++  "Dusklight Menu Sounds": "Sonidos del menú Dusklight",
++  "Play sound effects when navigating the Dusklight menu.": "Reproduce sonidos al navegar por el menú de Dusklight.",
++  "Adjusts the volume of all sounds in the game.": "Ajusta el volumen de todos los sonidos del juego.",
++  "Adjusts the volume of all music in the game.": "Ajusta el volumen de toda la música del juego.",
++  "Enables the reverb effect in game audio.": "Activa la reverberación del sonido del juego.",
++  "Configure Inputs": "Configurar controles",
++  "Open input binding configuration.": "Abre la configuración de asignación de controles.",
++  "Camera": "Cámara",
++  "Free Camera": "Cámara libre",
++  "Free Camera X Sensitivity": "Sensibilidad X de cámara libre",
++  "Free Camera Y Sensitivity": "Sensibilidad Y de cámara libre",
++  "Invert Camera X Axis": "Invertir eje X de cámara",
++  "Invert Camera Y Axis": "Invertir eje Y de cámara",
++  "Invert First Person X Axis": "Invertir eje X en primera persona",
++  "Invert First Person Y Axis": "Invertir eje Y en primera persona",
++  "Invert Air/Swim X Axis": "Invertir eje X al volar/nadar",
++  "Invert Air/Swim Y Axis": "Invertir eje Y al volar/nadar",
++  "Touch": "Táctil",
++  "Touch Controls": "Controles táctiles",
++  "Touch Targeting": "Apuntar con pantalla táctil",
++  "Customize Layout": "Personalizar disposición",
++  "Touch Camera X Sensitivity": "Sensibilidad X de cámara táctil",
++  "Touch Camera Y Sensitivity": "Sensibilidad Y de cámara táctil",
++  "Mouse": "Ratón",
++  "Mouse Aim": "Apuntar con ratón",
++  "Mouse Camera": "Cámara con ratón",
++  "Mouse/Touch in Menus": "Ratón/táctil en menús",
++  "Mouse Aim Sensitivity": "Sensibilidad de apuntado con ratón",
++  "Mouse Camera Sensitivity": "Sensibilidad de cámara con ratón",
++  "Invert Mouse Y": "Invertir Y del ratón",
++  "Gyro": "Giroscopio",
++  "Gyro Aim": "Apuntar con giroscopio",
++  "Gyro Pitch Sensitivity": "Sensibilidad de inclinación del giroscopio",
++  "Gyro Yaw Sensitivity": "Sensibilidad de giro del giroscopio",
++  "Gyro Deadband": "Zona muerta del giroscopio",
++  "Gyro Smoothing": "Suavizado del giroscopio",
++  "Gyro Rollgoal": "Rollgoal con giroscopio",
++  "Rollgoal Sensitivity": "Sensibilidad de Rollgoal",
++  "Invert Gyro Pitch": "Invertir inclinación del giroscopio",
++  "Invert Gyro Yaw": "Invertir giro del giroscopio",
++  "Allow Background Inputs": "Permitir controles en segundo plano",
++  "Hold": "Mantener",
++  "Switch": "Alternar",
++  "Hybrid": "Híbrido",
++  "Tools": "Herramientas",
++  "Types": "Tipos",
++  "Quality of Life": "Mejoras de comodidad",
++  "Tweaks": "Ajustes adicionales",
++  "Cosmetic": "Apariencia",
++  "Difficulty": "Dificultad",
++  "Abilities": "Habilidades",
++  "Cheats": "Trucos",
++  "Resources": "Recursos",
++  "Normal": "Normal",
++  "Always": "Siempre",
++  "After Learning Skill": "Después de aprender la técnica",
++  "Quick Transform (R+Y)": "Transformación rápida (R+Y)",
++  "Can Transform Anywhere": "Transformarse en cualquier lugar",
++  "Fast Iron Boots": "Botas de hierro rápidas",
++  "Fast Roll": "Voltereta rápida",
++  "Fast Spinner": "Aerodisco rápido",
++  "Faster Climbing": "Escalada rápida",
++  "Faster Scene Transitions": "Transiciones de escena rápidas",
++  "Faster Tears of Light": "Lágrimas de luz rápidas",
++  "Instant Text": "Texto instantáneo",
++  "Hold B for Instant Text": "Mantener B para texto instantáneo",
++  "Instant Saves": "Guardados instantáneos",
++  "Autosave": "Guardado automático",
++  "Bigger Wallets": "Bolsas de rupias más grandes",
++  "No Rupee Returns": "No devolver rupias",
++  "Disable Rupee Cutscenes": "Desactivar escenas de rupias",
++  "No Sword Recoil": "Sin retroceso de espada",
++  "Damage Multiplier": "Multiplicador de daño",
++  "No Heart Drops": "Sin corazones de enemigos",
++  "Instant Death": "Muerte instantánea",
++  "Double Defense": "Defensa doble",
++  "Invincible": "Invencible",
++  "Invincible Enemies": "Enemigos invencibles",
++  "No Climbing Miss Animation": "Sin animación de fallo al trepar",
++  "No 2nd Fish for Cat": "Sin segundo pez para el gato",
++  "Button Fishing": "Pesca con botones",
++  "Aiming Reticle": "Retícula de apuntado",
++  "Skip TV Settings Screen": "Omitir ajustes de TV",
++  "Disable Letterboxing": "Desactivar bandas horizontales",
++  "Disable Cutscene Pillarboxing": "Desactivar bandas verticales en escenas",
++  "Minimal HUD": "HUD mínimo",
++  "Enable Mini-Map Shadows": "Activar sombras del minimapa",
++  "Enable Rotating Link Doll": "Activar figura giratoria de Link",
++  "Mirror Mode": "Modo espejo",
++  "No Low HP Sound": "Sin aviso de vida baja",
++  "No Item Timer": "Sin temporizador de objetos",
++  "Magic Armor Behavior": "Comportamiento de la armadura mágica",
++  "Only During Cutscenes": "Solo durante escenas",
++  "Only During Gameplay": "Solo durante el juego",
++  "On Damage": "Al recibir daño",
++  "Infinite Arrows": "Flechas infinitas",
++  "Infinite Bombs": "Bombas infinitas",
++  "Infinite Epona Stamina": "Resistencia de Epona infinita",
++  "Infinite Hearts": "Corazones infinitos",
++  "Infinite Oil": "Aceite infinito",
++  "Infinite Oxygen": "Oxígeno infinito",
++  "Infinite Rupees": "Rupias infinitas",
++  "Infinite Seeds": "Semillas infinitas",
++  "Speedrunning": "Speedrun",
++  "Speedrun Mode": "Modo speedrun",
++  "Show Input Viewer": "Mostrar controles",
++  "Show Gyro Input Viewer": "Mostrar controles del giroscopio",
++  "Show RTA": "Mostrar tiempo real",
++  "Recording Mode": "Modo de grabación",
++  "LiveSplit Connection": "Conexión LiveSplit",
++  "Hide Owl Statue Markers": "Ocultar marcadores de estatuas de búho",
++  "Show Poe Count on Map": "Mostrar espectros en el mapa",
++  "Restore Wii 1.0 Glitches": "Restaurar fallos de Wii 1.0",
++  "Achievements": "Logros",
++  "Notifications": "Notificaciones",
++  "Select All": "Seleccionar todo",
++  "Select None": "No seleccionar nada",
++  "Show Shader Compilation": "Mostrar compilación de shaders",
++  "Show an overlay when shaders are being compiled for your hardware.": "Muestra un indicador mientras se compilan shaders para tu hardware.",
++  "Skip Dusklight Main Menu": "Omitir menú principal de Dusklight",
++  "Check for Dusklight Updates": "Buscar actualizaciones de Dusklight",
++  "Enable Advanced Settings": "Activar ajustes avanzados",
++  "Enable Discord Rich Presence": "Activar Discord Rich Presence",
++  "Crash Reporting": "Informes de errores",
++  "Restart to Main Menu": "Volver al menú principal",
++  "Restart Dusklight to the pre-launch menu to change settings, game modes, or mods.": "Reinicia Dusklight en el menú inicial para cambiar ajustes, modos de juego o mods.",
++  "Missing Device": "Dispositivo no disponible",
++  "Searching disc images...": "Buscando imágenes de disco…",
++  "Backing up ISO...": "Creando copia de la ISO…",
++  "Verifying backup...": "Verificando copia…",
++  "Preparing disc selection": "Preparando selección de disco",
++  "Your menu stays visible while files are checked. Original files are retained.": "El menú permanece visible durante la comprobación. Se conservan los archivos originales.",
++  "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Elige una imagen de disco GameCube. El cambio se aplicará al reiniciar Dusklight.",
++  "Files checked": "Archivos comprobados",
++  "Scan canceled. Original files were retained.": "Búsqueda cancelada. Se conservan los archivos originales."
++}
+diff --git a/res/locales/fr.json b/res/locales/fr.json
+new file mode 100644
+index 0000000..29f00fb
+--- /dev/null
++++ b/res/locales/fr.json
+@@ -0,0 +1,279 @@
++{
++  "presents": "présente",
++  "Play": "Jouer",
++  "Settings": "Paramètres",
++  "Mods": "Mods",
++  "Quit": "Quitter",
++  "Menu language / Menüsprache": "Langue du menu",
++  "Menu language": "Langue du menu",
++  "Choose the language of the startup interface. Game text has its own language setting. Close and reopen Dusklight after changing this option.": "Choisissez la langue de l’interface de démarrage. Les textes du jeu ont leur propre réglage. Fermez et relancez Dusklight après ce changement.",
++  "English": "Anglais",
++  "German": "Allemand",
++  "French": "Français",
++  "Spanish": "Espagnol",
++  "Italian": "Italien",
++  "Japanese": "Japonais",
++  "Cancel": "Annuler",
++  "Cancelling...": "Annulation…",
++  "Continue": "Continuer",
++  "Continue anyway": "Continuer quand même",
++  "Back": "Retour",
++  "Close": "Fermer",
++  "Yes": "Oui",
++  "No": "Non",
++  "On": "Activé",
++  "Off": "Désactivé",
++  "Enabled": "Activé",
++  "Disabled": "Désactivé",
++  "Default": "Par défaut",
++  "Auto": "Automatique",
++  "Unknown": "Inconnu",
++  "All": "Tout",
++  "Some": "Certains",
++  "None": "Aucun",
++  "(none)": "(aucun)",
++  "Apply Options": "Appliquer les options",
++  "Restart later": "Redémarrer plus tard",
++  "Restart now": "Redémarrer maintenant",
++  "A restart is required to apply selected options.": "Un redémarrage est nécessaire pour appliquer les options sélectionnées.",
++  "Close and reopen Dusklight to apply them.": "Fermez et relancez Dusklight pour les appliquer.",
++  "Restart now to apply them immediately?": "Redémarrer maintenant pour les appliquer immédiatement ?",
++  "Changes require a restart.": "Les modifications nécessitent un redémarrage.",
++  "Select Disc Image": "Choisir une image disque",
++  "Game Disc Images": "Images de disques de jeu",
++  "All Files": "Tous les fichiers",
++  "Choose a protected GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Choisissez une image disque GameCube protégée. Un changement de disque prend effet après le redémarrage de Dusklight.",
++  "Close Dusklight and copy your USA or European GameCube raw ISO to": "Fermez Dusklight et copiez votre ISO GameCube brute américaine ou européenne dans",
++  ". Then reopen Dusklight and select it here. Wii discs and compressed images are not supported by this PS5 backend.": ". Relancez ensuite Dusklight et sélectionnez-la ici. Les disques Wii et les images compressées ne sont pas pris en charge par ce moteur PS5.",
++  "Protected disc folder is unavailable": "Le dossier de disques protégé est indisponible",
++  "No disc image found.": "Aucune image disque trouvée.",
++  "Pending restart.": "Redémarrage en attente.",
++  "Disc ready.": "Disque prêt.",
++  "Disc hash mismatch.": "L’empreinte du disque ne correspond pas.",
++  "Disc not verified.": "Disque non vérifié.",
++  "Disc unavailable.": "Disque indisponible.",
++  "Disc verification error": "Erreur de vérification du disque",
++  "Disc verification warning": "Avertissement de vérification du disque",
++  "Verifying disc image": "Vérification de l’image disque",
++  "Opening disc image...": "Ouverture de l’image disque…",
++  "The selected disc image is valid.": "L’image disque sélectionnée est valide.",
++  "The selected disc image could not be validated.": "Impossible de valider l’image disque sélectionnée.",
++  "The selected file is not a valid disc image.": "Le fichier sélectionné n’est pas une image disque valide.",
++  "The selected game is not supported by Dusklight.": "Le jeu sélectionné n’est pas pris en charge par Dusklight.",
++  "Unable to read the selected file.": "Impossible de lire le fichier sélectionné.",
++  "The selected disc image did not pass hash verification. It may be corrupt or modified.": "L’image disque sélectionnée n’a pas passé la vérification d’empreinte. Elle peut être endommagée ou modifiée.",
++  "Disc verification was canceled. Dusklight cannot guarantee the selected disc image is compatible.": "La vérification a été annulée. Dusklight ne peut pas garantir la compatibilité de l’image disque sélectionnée.",
++  "You may proceed at your own risk.": "Vous pouvez continuer à vos risques et périls.",
++  "Dusklight does not currently support the Wii's Korean version.": "Dusklight ne prend pas encore en charge la version coréenne sur Wii.",
++  "Language unavailable": "Langue indisponible",
++  "is not available on this disc. Language has been reset to": "n’est pas disponible sur ce disque. La langue a été réinitialisée sur",
++  "Checking for updates...": "Recherche de mises à jour…",
++  "Update available!": "Mise à jour disponible !",
++  "Failed to check for updates": "Échec de la recherche de mises à jour",
++  "Download {}": "Télécharger {}",
++  "Update is available, but the release did not include a download URL": "Une mise à jour est disponible, mais la publication ne contient aucun lien de téléchargement",
++  "Welcome to Dusklight": "Bienvenue dans Dusklight",
++  "Choose a preset to get started. You can change any setting later from the Settings menu.": "Choisissez un préréglage pour commencer. Tous les réglages peuvent être modifiés ensuite dans les paramètres.",
++  "Classic": "Classique",
++  "Enhancements disabled to match the GameCube version. Good for speedrunning or simple nostalgia!": "Améliorations désactivées pour correspondre à la version GameCube. Idéal pour le speedrun ou la nostalgie !",
++  "Graphics & quality of life tweaks, including some from the Wii U version. Our recommended way to play!": "Améliorations graphiques et pratiques, dont certaines de la version Wii U. Notre façon de jouer recommandée !",
++  "Prelaunch": "Démarrage",
++  "Disc Image": "Image disque",
++  "Data Folder": "Dossier de données",
++  "Data Folder Not Changed": "Dossier de données inchangé",
++  "Current data folder:": "Dossier de données actuel :",
++  "Open Data Folder": "Ouvrir le dossier de données",
++  "Change Data Folder": "Changer le dossier de données",
++  "Portable Mode": "Mode portable",
++  "Reset to Default": "Rétablir les valeurs par défaut",
++  "Data will be migrated automatically on restart.": "Les données seront migrées automatiquement au redémarrage.",
++  "The data folder is where Dusklight stores settings, saves, logs, texture replacements, and other app data.": "Le dossier de données contient les paramètres, sauvegardes, journaux, textures de remplacement et autres données de Dusklight.",
++  "Set the disc image that Dusklight uses to launch the game.": "Définissez l’image disque utilisée par Dusklight pour lancer le jeu.",
++  "Language": "Langue",
++  "Graphics Backend": "Moteur graphique",
++  "Save File Type": "Type de sauvegarde",
++  "GCI Folder": "Dossier GCI",
++  "Card Image": "Image de carte mémoire",
++  "Game": "Jeu",
++  "Gameplay": "Jouabilité",
++  "Video": "Vidéo",
++  "Audio": "Audio",
++  "Input": "Commandes",
++  "Inputs": "Commandes",
++  "Display": "Affichage",
++  "Interface": "Interface",
++  "General": "Général",
++  "Rendering": "Rendu",
++  "Resolution": "Résolution",
++  "Internal Resolution": "Résolution interne",
++  "Shadow Resolution": "Résolution des ombres",
++  "Output": "Sortie",
++  "Effects": "Effets",
++  "Post-Processing": "Post-traitement",
++  "Enable VSync": "Activer la synchronisation verticale",
++  "Framerate Cap": "Limite d’images par seconde",
++  "Capped": "Limité",
++  "Unlimited": "Illimité",
++  "Unlock Framerate": "Débloquer la fréquence d’images",
++  "Show FPS Counter": "Afficher le compteur d’images par seconde",
++  "Top Left": "En haut à gauche",
++  "Top Right": "En haut à droite",
++  "Bottom Left": "En bas à gauche",
++  "Bottom Right": "En bas à droite",
++  "Lock 4:3 Aspect Ratio": "Verrouiller le format 4:3",
++  "UI Scale": "Échelle de l’interface",
++  "HUD Scale": "Échelle du HUD",
++  "Menu Scaling Mode": "Mode de mise à l’échelle des menus",
++  "Toggle Fullscreen": "Basculer en plein écran",
++  "Remember Window Size": "Mémoriser la taille de la fenêtre",
++  "Restore Default Window Size": "Rétablir la taille de fenêtre par défaut",
++  "Pause on Focus Lost": "Mettre en pause en arrière-plan",
++  "Output Resampling": "Rééchantillonnage de sortie",
++  "Bloom": "Halo lumineux",
++  "Bloom Brightness": "Luminosité du halo",
++  "Depth of Field": "Profondeur de champ",
++  "Enable Texture Replacements": "Activer les textures de remplacement",
++  "Enable installed texture replacements.": "Activer les textures de remplacement installées.",
++  "Volume": "Volume",
++  "Master Volume": "Volume principal",
++  "Main Music Volume": "Volume de la musique",
++  "Output Mode": "Mode de sortie",
++  "Stereo (Speakers)": "Stéréo (haut-parleurs)",
++  "Stereo (Headphones)": "Stéréo (casque)",
++  "Enable Reverb": "Activer la réverbération",
++  "Dusklight Menu Sounds": "Sons du menu Dusklight",
++  "Play sound effects when navigating the Dusklight menu.": "Jouer des effets sonores dans les menus de Dusklight.",
++  "Adjusts the volume of all sounds in the game.": "Règle le volume de tous les sons du jeu.",
++  "Adjusts the volume of all music in the game.": "Règle le volume de toute la musique du jeu.",
++  "Enables the reverb effect in game audio.": "Active la réverbération dans les sons du jeu.",
++  "Configure Inputs": "Configurer les commandes",
++  "Open input binding configuration.": "Ouvrir la configuration des commandes.",
++  "Camera": "Caméra",
++  "Free Camera": "Caméra libre",
++  "Free Camera X Sensitivity": "Sensibilité X de la caméra libre",
++  "Free Camera Y Sensitivity": "Sensibilité Y de la caméra libre",
++  "Invert Camera X Axis": "Inverser l’axe X de la caméra",
++  "Invert Camera Y Axis": "Inverser l’axe Y de la caméra",
++  "Invert First Person X Axis": "Inverser l’axe X en vue subjective",
++  "Invert First Person Y Axis": "Inverser l’axe Y en vue subjective",
++  "Invert Air/Swim X Axis": "Inverser l’axe X en vol/nage",
++  "Invert Air/Swim Y Axis": "Inverser l’axe Y en vol/nage",
++  "Touch": "Tactile",
++  "Touch Controls": "Commandes tactiles",
++  "Touch Targeting": "Visée tactile",
++  "Customize Layout": "Personnaliser la disposition",
++  "Touch Camera X Sensitivity": "Sensibilité X de la caméra tactile",
++  "Touch Camera Y Sensitivity": "Sensibilité Y de la caméra tactile",
++  "Mouse": "Souris",
++  "Mouse Aim": "Visée à la souris",
++  "Mouse Camera": "Caméra à la souris",
++  "Mouse/Touch in Menus": "Souris/tactile dans les menus",
++  "Mouse Aim Sensitivity": "Sensibilité de la visée à la souris",
++  "Mouse Camera Sensitivity": "Sensibilité de la caméra à la souris",
++  "Invert Mouse Y": "Inverser l’axe Y de la souris",
++  "Gyro": "Gyroscope",
++  "Gyro Aim": "Visée gyroscopique",
++  "Gyro Pitch Sensitivity": "Sensibilité d’inclinaison gyroscopique",
++  "Gyro Yaw Sensitivity": "Sensibilité de rotation gyroscopique",
++  "Gyro Deadband": "Zone morte du gyroscope",
++  "Gyro Smoothing": "Lissage du gyroscope",
++  "Gyro Rollgoal": "Korokoro au gyroscope",
++  "Rollgoal Sensitivity": "Sensibilité de Korokoro",
++  "Invert Gyro Pitch": "Inverser l’inclinaison gyroscopique",
++  "Invert Gyro Yaw": "Inverser la rotation gyroscopique",
++  "Allow Background Inputs": "Autoriser les commandes en arrière-plan",
++  "Hold": "Maintenir",
++  "Switch": "Basculer",
++  "Hybrid": "Hybride",
++  "Tools": "Outils",
++  "Types": "Types",
++  "Quality of Life": "Améliorations pratiques",
++  "Tweaks": "Ajustements",
++  "Cosmetic": "Apparence",
++  "Difficulty": "Difficulté",
++  "Abilities": "Capacités",
++  "Cheats": "Triches",
++  "Resources": "Ressources",
++  "Normal": "Normal",
++  "Always": "Toujours",
++  "After Learning Skill": "Après l’apprentissage de la technique",
++  "Quick Transform (R+Y)": "Transformation rapide (R+Y)",
++  "Can Transform Anywhere": "Transformation possible partout",
++  "Fast Iron Boots": "Bottes de fer rapides",
++  "Fast Roll": "Roulade rapide",
++  "Fast Spinner": "Aérouage rapide",
++  "Faster Climbing": "Escalade rapide",
++  "Faster Scene Transitions": "Transitions de scènes rapides",
++  "Faster Tears of Light": "Perles de lumière rapides",
++  "Instant Text": "Texte instantané",
++  "Hold B for Instant Text": "Maintenir B pour le texte instantané",
++  "Instant Saves": "Sauvegardes instantanées",
++  "Autosave": "Sauvegarde automatique",
++  "Bigger Wallets": "Bourses plus grandes",
++  "No Rupee Returns": "Ne pas remettre les rubis",
++  "Disable Rupee Cutscenes": "Désactiver les scènes de rubis",
++  "No Sword Recoil": "Pas de recul de l’épée",
++  "Damage Multiplier": "Multiplicateur de dégâts",
++  "No Heart Drops": "Pas de cœurs laissés par les ennemis",
++  "Instant Death": "Mort instantanée",
++  "Double Defense": "Défense doublée",
++  "Invincible": "Invincible",
++  "Invincible Enemies": "Ennemis invincibles",
++  "No Climbing Miss Animation": "Pas d’animation de prise manquée",
++  "No 2nd Fish for Cat": "Pas de deuxième poisson pour le chat",
++  "Button Fishing": "Pêche au bouton",
++  "Aiming Reticle": "Réticule de visée",
++  "Skip TV Settings Screen": "Passer l’écran de réglage du téléviseur",
++  "Disable Letterboxing": "Désactiver les bandes horizontales",
++  "Disable Cutscene Pillarboxing": "Désactiver les bandes verticales des scènes",
++  "Minimal HUD": "HUD minimal",
++  "Enable Mini-Map Shadows": "Activer les ombres de la mini-carte",
++  "Enable Rotating Link Doll": "Activer la figurine de Link tournante",
++  "Mirror Mode": "Mode miroir",
++  "No Low HP Sound": "Pas d’alarme de vie faible",
++  "No Item Timer": "Pas de minuterie d’objet",
++  "Magic Armor Behavior": "Comportement de l’armure magique",
++  "Only During Cutscenes": "Pendant les scènes uniquement",
++  "Only During Gameplay": "Pendant le jeu uniquement",
++  "On Damage": "En cas de dégâts",
++  "Infinite Arrows": "Flèches infinies",
++  "Infinite Bombs": "Bombes infinies",
++  "Infinite Epona Stamina": "Endurance d’Épona infinie",
++  "Infinite Hearts": "Cœurs infinis",
++  "Infinite Oil": "Huile infinie",
++  "Infinite Oxygen": "Oxygène infini",
++  "Infinite Rupees": "Rubis infinis",
++  "Infinite Seeds": "Graines infinies",
++  "Speedrunning": "Speedrun",
++  "Speedrun Mode": "Mode speedrun",
++  "Show Input Viewer": "Afficher les commandes",
++  "Show Gyro Input Viewer": "Afficher les données du gyroscope",
++  "Show RTA": "Afficher le temps réel",
++  "Recording Mode": "Mode d’enregistrement",
++  "LiveSplit Connection": "Connexion LiveSplit",
++  "Hide Owl Statue Markers": "Masquer les marqueurs des statues de hibou",
++  "Show Poe Count on Map": "Afficher les spectres sur la carte",
++  "Restore Wii 1.0 Glitches": "Rétablir les bugs de la version Wii 1.0",
++  "Achievements": "Succès",
++  "Notifications": "Notifications",
++  "Select All": "Tout sélectionner",
++  "Select None": "Ne rien sélectionner",
++  "Show Shader Compilation": "Afficher la compilation des shaders",
++  "Show an overlay when shaders are being compiled for your hardware.": "Afficher un indicateur lors de la compilation des shaders pour votre matériel.",
++  "Skip Dusklight Main Menu": "Passer le menu principal de Dusklight",
++  "Check for Dusklight Updates": "Rechercher les mises à jour de Dusklight",
++  "Enable Advanced Settings": "Activer les paramètres avancés",
++  "Enable Discord Rich Presence": "Activer Discord Rich Presence",
++  "Crash Reporting": "Rapports de plantage",
++  "Restart to Main Menu": "Revenir au menu principal",
++  "Restart Dusklight to the pre-launch menu to change settings, game modes, or mods.": "Relancer Dusklight dans le menu de démarrage pour changer les paramètres, modes de jeu ou mods.",
++  "Missing Device": "Périphérique absent",
++  "Searching disc images...": "Recherche d’images disque…",
++  "Backing up ISO...": "Sauvegarde de l’ISO…",
++  "Verifying backup...": "Vérification de la copie…",
++  "Preparing disc selection": "Préparation du choix du disque",
++  "Your menu stays visible while files are checked. Original files are retained.": "Le menu reste visible pendant la vérification. Les fichiers d’origine sont conservés.",
++  "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Choisissez une image disque GameCube. Le changement prend effet après le redémarrage de Dusklight.",
++  "Files checked": "Fichiers vérifiés",
++  "Scan canceled. Original files were retained.": "Recherche annulée. Les fichiers d’origine sont conservés."
++}
+diff --git a/res/locales/it.json b/res/locales/it.json
+new file mode 100644
+index 0000000..87867b9
+--- /dev/null
++++ b/res/locales/it.json
+@@ -0,0 +1,279 @@
++{
++  "presents": "presenta",
++  "Play": "Gioca",
++  "Settings": "Impostazioni",
++  "Mods": "Mod",
++  "Quit": "Esci",
++  "Menu language / Menüsprache": "Lingua del menu",
++  "Menu language": "Lingua del menu",
++  "Choose the language of the startup interface. Game text has its own language setting. Close and reopen Dusklight after changing this option.": "Scegli la lingua dell’interfaccia iniziale. I testi del gioco hanno un’impostazione separata. Chiudi e riapri Dusklight dopo la modifica.",
++  "English": "Inglese",
++  "German": "Tedesco",
++  "French": "Francese",
++  "Spanish": "Spagnolo",
++  "Italian": "Italiano",
++  "Japanese": "Giapponese",
++  "Cancel": "Annulla",
++  "Cancelling...": "Annullamento…",
++  "Continue": "Continua",
++  "Continue anyway": "Continua comunque",
++  "Back": "Indietro",
++  "Close": "Chiudi",
++  "Yes": "Sì",
++  "No": "No",
++  "On": "Attivo",
++  "Off": "Disattivo",
++  "Enabled": "Abilitato",
++  "Disabled": "Disabilitato",
++  "Default": "Predefinito",
++  "Auto": "Automatico",
++  "Unknown": "Sconosciuto",
++  "All": "Tutto",
++  "Some": "Alcuni",
++  "None": "Nessuno",
++  "(none)": "(nessuno)",
++  "Apply Options": "Applica opzioni",
++  "Restart later": "Riavvia più tardi",
++  "Restart now": "Riavvia ora",
++  "A restart is required to apply selected options.": "È necessario riavviare per applicare le opzioni selezionate.",
++  "Close and reopen Dusklight to apply them.": "Chiudi e riapri Dusklight per applicarle.",
++  "Restart now to apply them immediately?": "Riavviare ora per applicarle subito?",
++  "Changes require a restart.": "Le modifiche richiedono un riavvio.",
++  "Select Disc Image": "Seleziona immagine disco",
++  "Game Disc Images": "Immagini disco di gioco",
++  "All Files": "Tutti i file",
++  "Choose a protected GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Scegli un’immagine disco GameCube protetta. La modifica avrà effetto dopo il riavvio di Dusklight.",
++  "Close Dusklight and copy your USA or European GameCube raw ISO to": "Chiudi Dusklight e copia la tua ISO GameCube americana o europea non compressa in",
++  ". Then reopen Dusklight and select it here. Wii discs and compressed images are not supported by this PS5 backend.": ". Quindi riapri Dusklight e selezionala qui. Questo motore PS5 non supporta dischi Wii e immagini compresse.",
++  "Protected disc folder is unavailable": "La cartella dei dischi protetta non è disponibile",
++  "No disc image found.": "Nessuna immagine disco trovata.",
++  "Pending restart.": "Riavvio in attesa.",
++  "Disc ready.": "Disco pronto.",
++  "Disc hash mismatch.": "L’impronta del disco non corrisponde.",
++  "Disc not verified.": "Disco non verificato.",
++  "Disc unavailable.": "Disco non disponibile.",
++  "Disc verification error": "Errore di verifica del disco",
++  "Disc verification warning": "Avviso di verifica del disco",
++  "Verifying disc image": "Verifica dell’immagine disco",
++  "Opening disc image...": "Apertura dell’immagine disco…",
++  "The selected disc image is valid.": "L’immagine disco selezionata è valida.",
++  "The selected disc image could not be validated.": "Impossibile convalidare l’immagine disco selezionata.",
++  "The selected file is not a valid disc image.": "Il file selezionato non è un’immagine disco valida.",
++  "The selected game is not supported by Dusklight.": "Il gioco selezionato non è supportato da Dusklight.",
++  "Unable to read the selected file.": "Impossibile leggere il file selezionato.",
++  "The selected disc image did not pass hash verification. It may be corrupt or modified.": "L’immagine disco selezionata non ha superato la verifica dell’impronta. Potrebbe essere danneggiata o modificata.",
++  "Disc verification was canceled. Dusklight cannot guarantee the selected disc image is compatible.": "La verifica è stata annullata. Dusklight non può garantire la compatibilità dell’immagine disco selezionata.",
++  "You may proceed at your own risk.": "Puoi continuare a tuo rischio.",
++  "Dusklight does not currently support the Wii's Korean version.": "Dusklight non supporta ancora la versione coreana per Wii.",
++  "Language unavailable": "Lingua non disponibile",
++  "is not available on this disc. Language has been reset to": "non è disponibile su questo disco. La lingua è stata reimpostata su",
++  "Checking for updates...": "Ricerca aggiornamenti…",
++  "Update available!": "Aggiornamento disponibile!",
++  "Failed to check for updates": "Ricerca aggiornamenti non riuscita",
++  "Download {}": "Scarica {}",
++  "Update is available, but the release did not include a download URL": "È disponibile un aggiornamento, ma la versione non include un indirizzo di download",
++  "Welcome to Dusklight": "Benvenuto in Dusklight",
++  "Choose a preset to get started. You can change any setting later from the Settings menu.": "Scegli una configurazione iniziale. Potrai modificare ogni opzione dal menu Impostazioni.",
++  "Classic": "Classico",
++  "Enhancements disabled to match the GameCube version. Good for speedrunning or simple nostalgia!": "Miglioramenti disattivati per riprodurre la versione GameCube. Ideale per speedrun o nostalgia!",
++  "Graphics & quality of life tweaks, including some from the Wii U version. Our recommended way to play!": "Miglioramenti grafici e pratici, inclusi alcuni della versione Wii U. Il nostro modo di giocare consigliato!",
++  "Prelaunch": "Avvio",
++  "Disc Image": "Immagine disco",
++  "Data Folder": "Cartella dati",
++  "Data Folder Not Changed": "Cartella dati non modificata",
++  "Current data folder:": "Cartella dati attuale:",
++  "Open Data Folder": "Apri cartella dati",
++  "Change Data Folder": "Cambia cartella dati",
++  "Portable Mode": "Modalità portatile",
++  "Reset to Default": "Ripristina valori predefiniti",
++  "Data will be migrated automatically on restart.": "I dati verranno migrati automaticamente al riavvio.",
++  "The data folder is where Dusklight stores settings, saves, logs, texture replacements, and other app data.": "La cartella dati contiene impostazioni, salvataggi, registri, texture sostitutive e altri dati di Dusklight.",
++  "Set the disc image that Dusklight uses to launch the game.": "Imposta l’immagine disco usata da Dusklight per avviare il gioco.",
++  "Language": "Lingua",
++  "Graphics Backend": "Motore grafico",
++  "Save File Type": "Tipo di salvataggio",
++  "GCI Folder": "Cartella GCI",
++  "Card Image": "Immagine scheda di memoria",
++  "Game": "Gioco",
++  "Gameplay": "Giocabilità",
++  "Video": "Video",
++  "Audio": "Audio",
++  "Input": "Comandi",
++  "Inputs": "Comandi",
++  "Display": "Schermo",
++  "Interface": "Interfaccia",
++  "General": "Generale",
++  "Rendering": "Rendering",
++  "Resolution": "Risoluzione",
++  "Internal Resolution": "Risoluzione interna",
++  "Shadow Resolution": "Risoluzione ombre",
++  "Output": "Uscita",
++  "Effects": "Effetti",
++  "Post-Processing": "Post-elaborazione",
++  "Enable VSync": "Attiva sincronizzazione verticale",
++  "Framerate Cap": "Limite fotogrammi",
++  "Capped": "Limitato",
++  "Unlimited": "Illimitato",
++  "Unlock Framerate": "Sblocca fotogrammi",
++  "Show FPS Counter": "Mostra contatore FPS",
++  "Top Left": "In alto a sinistra",
++  "Top Right": "In alto a destra",
++  "Bottom Left": "In basso a sinistra",
++  "Bottom Right": "In basso a destra",
++  "Lock 4:3 Aspect Ratio": "Blocca proporzioni 4:3",
++  "UI Scale": "Scala interfaccia",
++  "HUD Scale": "Scala HUD",
++  "Menu Scaling Mode": "Modalità scala menu",
++  "Toggle Fullscreen": "Attiva/disattiva schermo intero",
++  "Remember Window Size": "Ricorda dimensioni finestra",
++  "Restore Default Window Size": "Ripristina dimensioni finestra predefinite",
++  "Pause on Focus Lost": "Pausa quando non attivo",
++  "Output Resampling": "Ricampionamento uscita",
++  "Bloom": "Bagliore",
++  "Bloom Brightness": "Luminosità del bagliore",
++  "Depth of Field": "Profondità di campo",
++  "Enable Texture Replacements": "Attiva texture sostitutive",
++  "Enable installed texture replacements.": "Attiva le texture sostitutive installate.",
++  "Volume": "Volume",
++  "Master Volume": "Volume principale",
++  "Main Music Volume": "Volume musica",
++  "Output Mode": "Modalità uscita",
++  "Stereo (Speakers)": "Stereo (altoparlanti)",
++  "Stereo (Headphones)": "Stereo (cuffie)",
++  "Enable Reverb": "Attiva riverbero",
++  "Dusklight Menu Sounds": "Suoni del menu Dusklight",
++  "Play sound effects when navigating the Dusklight menu.": "Riproduci effetti sonori durante la navigazione nei menu di Dusklight.",
++  "Adjusts the volume of all sounds in the game.": "Regola il volume di tutti i suoni del gioco.",
++  "Adjusts the volume of all music in the game.": "Regola il volume di tutta la musica del gioco.",
++  "Enables the reverb effect in game audio.": "Attiva l’effetto riverbero nell’audio del gioco.",
++  "Configure Inputs": "Configura comandi",
++  "Open input binding configuration.": "Apri la configurazione dei comandi.",
++  "Camera": "Telecamera",
++  "Free Camera": "Telecamera libera",
++  "Free Camera X Sensitivity": "Sensibilità X telecamera libera",
++  "Free Camera Y Sensitivity": "Sensibilità Y telecamera libera",
++  "Invert Camera X Axis": "Inverti asse X telecamera",
++  "Invert Camera Y Axis": "Inverti asse Y telecamera",
++  "Invert First Person X Axis": "Inverti asse X in prima persona",
++  "Invert First Person Y Axis": "Inverti asse Y in prima persona",
++  "Invert Air/Swim X Axis": "Inverti asse X in volo/nuoto",
++  "Invert Air/Swim Y Axis": "Inverti asse Y in volo/nuoto",
++  "Touch": "Tocco",
++  "Touch Controls": "Comandi tattili",
++  "Touch Targeting": "Mira tattile",
++  "Customize Layout": "Personalizza disposizione",
++  "Touch Camera X Sensitivity": "Sensibilità X telecamera tattile",
++  "Touch Camera Y Sensitivity": "Sensibilità Y telecamera tattile",
++  "Mouse": "Mouse",
++  "Mouse Aim": "Mira con mouse",
++  "Mouse Camera": "Telecamera con mouse",
++  "Mouse/Touch in Menus": "Mouse/tocco nei menu",
++  "Mouse Aim Sensitivity": "Sensibilità mira con mouse",
++  "Mouse Camera Sensitivity": "Sensibilità telecamera con mouse",
++  "Invert Mouse Y": "Inverti Y mouse",
++  "Gyro": "Giroscopio",
++  "Gyro Aim": "Mira giroscopica",
++  "Gyro Pitch Sensitivity": "Sensibilità inclinazione giroscopio",
++  "Gyro Yaw Sensitivity": "Sensibilità rotazione giroscopio",
++  "Gyro Deadband": "Zona morta giroscopio",
++  "Gyro Smoothing": "Smorzamento giroscopio",
++  "Gyro Rollgoal": "Rollgoal giroscopico",
++  "Rollgoal Sensitivity": "Sensibilità Rollgoal",
++  "Invert Gyro Pitch": "Inverti inclinazione giroscopio",
++  "Invert Gyro Yaw": "Inverti rotazione giroscopio",
++  "Allow Background Inputs": "Consenti comandi in background",
++  "Hold": "Tieni premuto",
++  "Switch": "Attiva/disattiva",
++  "Hybrid": "Ibrido",
++  "Tools": "Strumenti",
++  "Types": "Tipi",
++  "Quality of Life": "Miglioramenti pratici",
++  "Tweaks": "Modifiche",
++  "Cosmetic": "Aspetto",
++  "Difficulty": "Difficoltà",
++  "Abilities": "Abilità",
++  "Cheats": "Trucchi",
++  "Resources": "Risorse",
++  "Normal": "Normale",
++  "Always": "Sempre",
++  "After Learning Skill": "Dopo aver imparato la tecnica",
++  "Quick Transform (R+Y)": "Trasformazione rapida (R+Y)",
++  "Can Transform Anywhere": "Trasformati ovunque",
++  "Fast Iron Boots": "Stivali di ferro rapidi",
++  "Fast Roll": "Capriole rapide",
++  "Fast Spinner": "Rotante rapido",
++  "Faster Climbing": "Arrampicata rapida",
++  "Faster Scene Transitions": "Transizioni di scena rapide",
++  "Faster Tears of Light": "Gocce di luce rapide",
++  "Instant Text": "Testo istantaneo",
++  "Hold B for Instant Text": "Tieni premuto B per testo istantaneo",
++  "Instant Saves": "Salvataggi istantanei",
++  "Autosave": "Salvataggio automatico",
++  "Bigger Wallets": "Portarupie più capienti",
++  "No Rupee Returns": "Non rimettere le rupie",
++  "Disable Rupee Cutscenes": "Disattiva scene delle rupie",
++  "No Sword Recoil": "Nessun rimbalzo della spada",
++  "Damage Multiplier": "Moltiplicatore danni",
++  "No Heart Drops": "Nessun cuore rilasciato",
++  "Instant Death": "Morte istantanea",
++  "Double Defense": "Difesa doppia",
++  "Invincible": "Invincibile",
++  "Invincible Enemies": "Nemici invincibili",
++  "No Climbing Miss Animation": "Nessuna animazione di presa mancata",
++  "No 2nd Fish for Cat": "Nessun secondo pesce per il gatto",
++  "Button Fishing": "Pesca con pulsanti",
++  "Aiming Reticle": "Mirino",
++  "Skip TV Settings Screen": "Salta impostazioni TV",
++  "Disable Letterboxing": "Disattiva bande orizzontali",
++  "Disable Cutscene Pillarboxing": "Disattiva bande verticali nei filmati",
++  "Minimal HUD": "HUD minimale",
++  "Enable Mini-Map Shadows": "Attiva ombre minimappa",
++  "Enable Rotating Link Doll": "Attiva modello di Link rotante",
++  "Mirror Mode": "Modalità specchio",
++  "No Low HP Sound": "Nessun suono con pochi cuori",
++  "No Item Timer": "Nessun timer degli oggetti",
++  "Magic Armor Behavior": "Comportamento armatura magica",
++  "Only During Cutscenes": "Solo durante i filmati",
++  "Only During Gameplay": "Solo durante il gioco",
++  "On Damage": "Quando subisci danni",
++  "Infinite Arrows": "Frecce infinite",
++  "Infinite Bombs": "Bombe infinite",
++  "Infinite Epona Stamina": "Resistenza di Epona infinita",
++  "Infinite Hearts": "Cuori infiniti",
++  "Infinite Oil": "Olio infinito",
++  "Infinite Oxygen": "Ossigeno infinito",
++  "Infinite Rupees": "Rupie infinite",
++  "Infinite Seeds": "Semi infiniti",
++  "Speedrunning": "Speedrun",
++  "Speedrun Mode": "Modalità speedrun",
++  "Show Input Viewer": "Mostra comandi",
++  "Show Gyro Input Viewer": "Mostra comandi giroscopici",
++  "Show RTA": "Mostra tempo reale",
++  "Recording Mode": "Modalità registrazione",
++  "LiveSplit Connection": "Connessione LiveSplit",
++  "Hide Owl Statue Markers": "Nascondi indicatori delle statue di gufo",
++  "Show Poe Count on Map": "Mostra spettri sulla mappa",
++  "Restore Wii 1.0 Glitches": "Ripristina glitch Wii 1.0",
++  "Achievements": "Obiettivi",
++  "Notifications": "Notifiche",
++  "Select All": "Seleziona tutto",
++  "Select None": "Deseleziona tutto",
++  "Show Shader Compilation": "Mostra compilazione shader",
++  "Show an overlay when shaders are being compiled for your hardware.": "Mostra un indicatore durante la compilazione degli shader per il tuo hardware.",
++  "Skip Dusklight Main Menu": "Salta menu principale di Dusklight",
++  "Check for Dusklight Updates": "Cerca aggiornamenti di Dusklight",
++  "Enable Advanced Settings": "Attiva impostazioni avanzate",
++  "Enable Discord Rich Presence": "Attiva Discord Rich Presence",
++  "Crash Reporting": "Segnalazione arresti anomali",
++  "Restart to Main Menu": "Torna al menu principale",
++  "Restart Dusklight to the pre-launch menu to change settings, game modes, or mods.": "Riavvia Dusklight nel menu iniziale per cambiare impostazioni, modalità di gioco o mod.",
++  "Missing Device": "Dispositivo mancante",
++  "Searching disc images...": "Ricerca immagini disco…",
++  "Backing up ISO...": "Backup dell’ISO…",
++  "Verifying backup...": "Verifica del backup…",
++  "Preparing disc selection": "Preparazione selezione disco",
++  "Your menu stays visible while files are checked. Original files are retained.": "Il menu resta visibile durante il controllo. I file originali vengono conservati.",
++  "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.": "Scegli un’immagine disco GameCube. La modifica avrà effetto dopo il riavvio di Dusklight.",
++  "Files checked": "File controllati",
++  "Scan canceled. Original files were retained.": "Ricerca annullata. I file originali vengono conservati."
++}
+diff --git a/res/rml/prelaunch.rcss b/res/rml/prelaunch.rcss
+index 72151a0..59de14e 100644
+--- a/res/rml/prelaunch.rcss
++++ b/res/rml/prelaunch.rcss
+@@ -581,3 +581,6 @@ body.animate-in .intro-item {
+         justify-content: flex-start;
+     }
+ }
++
++/* Keep the existing menu artwork behind PS5 discovery and backup dialogs. */
++body.ps5-iso-background.disc-ready prelaunch-background { opacity: 1; }
 diff --git a/src/dusk/mods/loader/prepatch.cpp b/src/dusk/mods/loader/prepatch.cpp
 index 26c802a..104f0f9 100644
 --- a/src/dusk/mods/loader/prepatch.cpp
@@ -126,53 +1358,477 @@ index 09154d0..8a0524f 100644
      if (store.state == State::Checking) {
          return "Checking for mod updates…";
      }
-diff --git a/src/dusk/texture_replacements.cpp b/src/dusk/texture_replacements.cpp
-index 118989c..a83eeb0 100644
---- a/src/dusk/texture_replacements.cpp
-+++ b/src/dusk/texture_replacements.cpp
-@@ -5,10 +5,20 @@
- #include "dusk/logging.h"
- #include "dusk/main.h"
- #include "dusk/settings.h"
-+#include "dusk/data.hpp"
+diff --git a/src/dusk/ps5_buttons.cpp b/src/dusk/ps5_buttons.cpp
+new file mode 100644
+index 0000000..392f74c
+--- /dev/null
++++ b/src/dusk/ps5_buttons.cpp
+@@ -0,0 +1,147 @@
++#include "ps5_buttons.hpp"
 +
 +#ifdef __PROSPERO__
-+#include <sys/stat.h>
++#include "JSystem/J2DGraph/J2DPicture.h"
++#include "dusk/settings.h"
++#include <xxhash.h>
++#include <algorithm>
++#include <atomic>
++#include <iterator>
++
++namespace dusk::ps5_buttons {
++namespace {
++enum class Style { Face, Shoulder, InlineFace, InlineShoulder };
++struct Resource {
++    unsigned width, height, format;
++    unsigned long long hash;
++    Style style;
++};
++constexpr Resource resources[] = {
++#include "generated-button-textures.inc"
++};
++std::atomic_bool available{false};
++
++const Resource* identify(const ResTIMG* info) {
++    if (info == nullptr) return nullptr;
++    // Width/height/format gate avoids hashing ordinary UI and scene textures.
++    for (const auto& resource : resources) {
++        if (info->width != resource.width || info->height != resource.height ||
++            info->format != resource.format) continue;
++        const unsigned block_height = info->format == 0 || info->format == 8 ? 8 : 4;
++        const std::size_t bytes = ((resource.width + 7) / 8) *
++                                  ((resource.height + block_height - 1) / block_height) * 32;
++        const auto* data = reinterpret_cast<const unsigned char*>(info) + info->imageOffset;
++        const auto hash = XXH64(data, bytes, 0);
++        // Hash once even when multiple prompts have the same dimensions.
++        for (const auto& candidate : resources) {
++            if (candidate.width == resource.width && candidate.height == resource.height &&
++                candidate.format == resource.format && candidate.hash == hash) return &candidate;
++        }
++        return nullptr;
++    }
++    return nullptr;
++}
++}
++
++void set_available(std::size_t registrations) {
++    available.store(registrations == std::size(resources), std::memory_order_relaxed);
++}
++
++namespace {
++// Adapted from Gary Riches' PS5_Dusklight colour pass (MIT). Match the exact A
++// label, then recolour its green backing within that button's pane hierarchy.
++bool green(const JUtility::TColor& c) {
++    return c.g >= 60 && c.g > c.r + c.r / 3 && c.g > c.b + c.b / 3;
++}
++JUtility::TColor blue(const JUtility::TColor& c) {
++    return {u8(c.r * 0.55f), u8(c.g * 0.62f), c.g, c.a};
++}
++void recolour(J2DPane& pane, J2DPane& letter) {
++    if (&pane != &letter && pane.getTypeID() == 18) {
++        auto& picture = static_cast<J2DPicture&>(pane);
++        const auto black = picture.getBlack(), white = picture.getWhite();
++        if (green(black) || green(white))
++            picture.setBlackWhite(green(black) ? blue(black) : black,
++                                  green(white) ? blue(white) : white);
++    }
++    for (auto* child = pane.getFirstChildPane(); child; child = child->getNextChildPane())
++        recolour(*child,letter);
++}
++void button_colours(J2DPane& pane) {
++    for (auto* child = pane.getFirstChildPane(); child; child = child->getNextChildPane()) {
++        if (child->getTypeID() == 18) {
++            auto* texture = static_cast<J2DPicture*>(child)->getTexture(0);
++            const auto* resource = identify(texture ? texture->getTexInfo() : nullptr);
++            if (resource == &resources[0]) recolour(pane,*child);
++        }
++        button_colours(*child);
++    }
++}
++}
++
++void prepare_screen(J2DPane& pane) {
++    if (available.load(std::memory_order_relaxed) &&
++        getSettings().game.enableTextureReplacements) button_colours(pane);
++}
++
++bool draw(J2DPicture& picture, float x, float y, float width, float height, Mtx* parent) {
++    if (!available.load(std::memory_order_relaxed) ||
++        !getSettings().game.enableTextureReplacements) return false;
++    auto* texture = picture.getTexture(0);
++    const auto* resource = identify(texture != nullptr ? texture->getTexInfo() : nullptr);
++    if (resource == nullptr || (resource->style != Style::InlineFace &&
++                                resource->style != Style::InlineShoulder)) return false;
++
++    Mtx matrix;
++    const auto alpha = parent != nullptr ? picture.mColorAlpha : picture.mAlpha;
++    if (parent != nullptr) {
++        MTXConcat(*parent, picture.mGlobalMtx, matrix);
++    } else {
++        picture.makeMatrix(x, y, 0.0f, 0.0f);
++        MTXCopy(picture.mPositionMtx, matrix);
++        x = y = 0.0f;
++    }
++
++    // Only inline icons contain a body and letter in the same source texture.
++    // Preserve their existing layout dimensions and draw our shaded replacement
++    // without the Nintendo-specific tint. The normal HUD renderer stays intact.
++    const float cap_width = width, cap_height = height;
++
++    texture->load(GX_TEXMAP0);
++    GXLoadPosMtxImm(matrix, GX_PNMTX0);
++    GXSetCurrentMtx(GX_PNMTX0);
++    GXSetNumTexGens(1);
++    GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
++    GXSetNumChans(1);
++    GXSetChanCtrl(GX_COLOR0A0, GX_DISABLE, GX_SRC_REG, GX_SRC_VTX, GX_LIGHT_NULL,
++                  GX_DF_NONE, GX_AF_NONE);
++    GXSetNumIndStages(0);
++    GXSetNumTevStages(1);
++    GXSetTevDirect(GX_TEVSTAGE0);
++    GXSetTevSwapModeTable(GX_TEV_SWAP0, GX_CH_RED, GX_CH_GREEN, GX_CH_BLUE, GX_CH_ALPHA);
++    GXSetTevSwapMode(GX_TEVSTAGE0, GX_TEV_SWAP0, GX_TEV_SWAP0);
++    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
++    GXSetTevOp(GX_TEVSTAGE0, GX_MODULATE);
++    GXClearVtxDesc();
++    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
++    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
++    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
++    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
++    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
++    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
++    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
++    constexpr unsigned corners[] = {0,1,3,2};
++    for (unsigned i = 0; i < 4; ++i) {
++        const float u = i == 1 || i == 2 ? 1.0f : 0.0f;
++        const float v = i >= 2 ? 1.0f : 0.0f;
++        GXPosition3f32(x + u * cap_width, y + v * cap_height, 0.0f);
++        GXColor4u8(255,255,255, unsigned(picture.corner(corners[i]).a) * alpha / 255);
++        GXTexCoord2f32(u,v);
++    }
++    GXEnd();
++    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
++    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U16, 15);
++    return true;
++}
++}
 +#endif
+diff --git a/src/dusk/ps5_buttons.hpp b/src/dusk/ps5_buttons.hpp
+new file mode 100644
+index 0000000..ad41bb8
+--- /dev/null
++++ b/src/dusk/ps5_buttons.hpp
+@@ -0,0 +1,19 @@
++#pragma once
++
++#ifdef __PROSPERO__
++#include <dolphin/mtx.h>
++#include <cstddef>
++
++class J2DPicture;
++class J2DPane;
++
++namespace dusk::ps5_buttons {
++void set_available(std::size_t registrations);
++// Preserve the original shaded HUD bodies; use blue for the Cross button.
++void prepare_screen(J2DPane& pane);
++// Draw only single-image inline prompts without the original Nintendo tint.
++// All separate HUD labels and bodies use the original J2D rendering path.
++bool draw(J2DPicture& picture, float x, float y, float width, float height,
++          Mtx* parent = nullptr);
++}
++#endif
+diff --git a/src/dusk/settings.cpp b/src/dusk/settings.cpp
+index f595544..b0eea0a 100644
+--- a/src/dusk/settings.cpp
++++ b/src/dusk/settings.cpp
+@@ -179,6 +179,7 @@ UserSettings g_userSettings = {
+         .isoPath {"backend.isoPath", ""},
+         .isoVerification {"backend.isoVerification", DiscVerificationState::Unknown},
+         .graphicsBackend {"backend.graphicsBackend", "auto"},
++        .menuLanguage {"backend.menuLanguage", ""},
+         .skipPreLaunchUI {"backend.skipPreLaunchUI", false},
+         .showPipelineCompilation {"backend.showPipelineCompilation", true},
+         .wasPresetChosen {"backend.wasPresetChosen", false},
+@@ -400,6 +401,7 @@ void registerSettings() {
+     Register(g_userSettings.backend.isoPath);
+     Register(g_userSettings.backend.isoVerification);
+     Register(g_userSettings.backend.graphicsBackend);
++    Register(g_userSettings.backend.menuLanguage);
+     Register(g_userSettings.backend.skipPreLaunchUI);
+     Register(g_userSettings.backend.showPipelineCompilation);
+     Register(g_userSettings.backend.wasPresetChosen);
+diff --git a/src/dusk/settings.h b/src/dusk/settings.h
+index 980bc2b..148b2e5 100644
+--- a/src/dusk/settings.h
++++ b/src/dusk/settings.h
+@@ -340,6 +340,7 @@ struct UserSettings {
+         ConfigVar<std::string> isoPath;
+         ConfigVar<DiscVerificationState> isoVerification;
+         ConfigVar<std::string> graphicsBackend;
++        ConfigVar<std::string> menuLanguage;
+         ConfigVar<bool> skipPreLaunchUI;
+         ConfigVar<bool> showPipelineCompilation;
+         ConfigVar<bool> wasPresetChosen;
+diff --git a/src/dusk/texture_replacements.cpp b/src/dusk/texture_replacements.cpp
+index 118989c..9a9decb 100644
+--- a/src/dusk/texture_replacements.cpp
++++ b/src/dusk/texture_replacements.cpp
+@@ -3,22 +3,41 @@
+ #include <aurora/texture.hpp>
+ 
+ #include "dusk/logging.h"
++#include "dusk/data.hpp"
+ #include "dusk/main.h"
+ #include "dusk/settings.h"
++#include "dusk/ps5_buttons.hpp"
  
  namespace dusk::texture_replacements {
  namespace {
  aurora::texture::ReplacementGroup s_directoryGroup;
 +#ifdef __PROSPERO__
-+// PlayStation 5: the DualSense's symbols for the game's button prompts, pictures the port draws
-+// and ships in the title's folder (ps5/art/make-glyphs.py). The user's own replacements win.
 +aurora::texture::ReplacementGroup s_ps5GlyphGroup;
 +#endif
  }
  
  void reload() {
-@@ -24,6 +34,16 @@ void reload() {
-         root, {.priority = kUserTextureReplacementPriority});
-     DuskLog.info("Texture replacement directory loaded: {} registration(s)",
-                  s_directoryGroup.registrations.size());
+     aurora::texture::unregister_replacements(s_directoryGroup);
+     s_directoryGroup.registrations.clear();
 +#ifdef __PROSPERO__
-+    // PlayStation 5: the folder is made for the title's user alone, and the console's FTP server
-+    // is another: let it in, or nobody can copy a texture there.
-+    chmod(root.c_str(), 0777);
++    ps5_buttons::set_available(0);
 +    aurora::texture::unregister_replacements(s_ps5GlyphGroup);
 +    s_ps5GlyphGroup.registrations.clear();
++#endif
+ 
+     if (!getSettings().game.enableTextureReplacements) {
+         return;
+     }
+ 
++#ifdef __PROSPERO__
++    // Extends Gary Riches' PS5_Dusklight CC0 Kenney glyphs. User texture packs
++    // keep their normal higher priority. These are artwork, not extracted game data.
 +    s_ps5GlyphGroup = aurora::texture::load_replacement_directory(
 +        data::base_path_relative("res/ps5-glyphs"), {.priority = kUserTextureReplacementPriority - 2});
 +    DuskLog.info("PS5 button glyphs: {} registration(s)", s_ps5GlyphGroup.registrations.size());
++    ps5_buttons::set_available(s_ps5GlyphGroup.registrations.size());
 +#endif
++
+     const auto root = ConfigPath / "texture_replacements";
+     s_directoryGroup = aurora::texture::load_replacement_directory(
+         root, {.priority = kUserTextureReplacementPriority});
+@@ -27,8 +46,15 @@ void reload() {
  }
  
  void shutdown() {
++#ifdef __PROSPERO__
++    ps5_buttons::set_available(0);
++#endif
+     aurora::texture::unregister_replacements(s_directoryGroup);
+     s_directoryGroup.registrations.clear();
++#ifdef __PROSPERO__
++    aurora::texture::unregister_replacements(s_ps5GlyphGroup);
++    s_ps5GlyphGroup.registrations.clear();
++#endif
+ }
+ 
+ }
+diff --git a/src/dusk/ui/clamped_text.cpp b/src/dusk/ui/clamped_text.cpp
+index 7e83b93..4a4ada1 100644
+--- a/src/dusk/ui/clamped_text.cpp
++++ b/src/dusk/ui/clamped_text.cpp
+@@ -1,4 +1,5 @@
+ #include "clamped_text.hpp"
++#include "localization.hpp"
+ 
+ #include <RmlUi/Core/ElementText.h>
+ #include <RmlUi/Core/ElementUtilities.h>
+@@ -10,7 +11,7 @@
+ namespace dusk::ui {
+ 
+ ClampedText::ClampedText(Rml::Element* root, Rml::String text, int maxLines)
+-    : Component{root}, mSource{std::move(text)},
++    : Component{root}, mSource{localization::translate(text)},
+       mText{static_cast<Rml::ElementText*>(append_text(root, mSource))},
+       mMaxLines{std::max(maxLines, 1)} {
+     mRoot->SetProperty("white-space", "pre-line");
+diff --git a/src/dusk/ui/component.cpp b/src/dusk/ui/component.cpp
+index 8eb0ce7..f86109f 100644
+--- a/src/dusk/ui/component.cpp
++++ b/src/dusk/ui/component.cpp
+@@ -1,4 +1,5 @@
+ #include "component.hpp"
++#include "localization.hpp"
+ 
+ namespace dusk::ui {
+ 
+@@ -132,6 +133,7 @@ Rml::Element* Component::add_text(const Rml::String& text) {
+ Rml::Element* Component::add_rml(const Rml::String& rml) {
+     auto* elem = append(mRoot, "div");
+     elem->SetInnerRML(rml);
++    localization::translate_document(elem);
+     return elem;
+ }
+ 
+diff --git a/src/dusk/ui/document.cpp b/src/dusk/ui/document.cpp
+index d40754a..8647825 100644
+--- a/src/dusk/ui/document.cpp
++++ b/src/dusk/ui/document.cpp
+@@ -1,6 +1,7 @@
+ #include "document.hpp"
+ 
+ #include "ui.hpp"
++#include "localization.hpp"
+ 
+ #include "m_Do/m_Do_audio.h"
+ 
+@@ -18,6 +19,7 @@ Rml::ElementDocument* load_document(const Rml::String& source) {
+     }
+     auto* document = context->LoadDocumentFromMemory(source);
+     if (document != nullptr) {
++        localization::translate_document(document);
+         if (auto global = Rml::Factory::InstanceStyleSheetFile("res/rml/global.rcss")) {
+             if (const auto* local = document->GetStyleSheetContainer()) {
+                 global = global->CombineStyleSheetContainer(*local);
+diff --git a/src/dusk/ui/localization.cpp b/src/dusk/ui/localization.cpp
+new file mode 100644
+index 0000000..5aa4a24
+--- /dev/null
++++ b/src/dusk/ui/localization.cpp
+@@ -0,0 +1,80 @@
++#include "localization.hpp"
++
++#include "dusk/config.hpp"
++#include "dusk/data.hpp"
++#include "dusk/logging.h"
++#include "dusk/settings.h"
++
++#include <RmlUi/Core/Element.h>
++#include <RmlUi/Core/ElementText.h>
++#include <nlohmann/json.hpp>
++
++#include <fstream>
++#include <unordered_map>
++
++namespace dusk::ui::localization {
++namespace {
++bool sLocalized = false;
++std::unordered_map<std::string, std::string> sText;
++}
++
++const char* language_name(const std::string& id) {
++    if (id == "fr") return "Français";
++    if (id == "de") return "Deutsch";
++    if (id == "es") return "Español";
++    if (id == "it") return "Italiano";
++    return "English";
++}
++
++void initialize() noexcept {
++    sText.clear();
++    auto& language = getSettings().backend.menuLanguage;
++    if (language.getValue() != "de" && language.getValue() != "en" &&
++        language.getValue() != "fr" && language.getValue() != "es" && language.getValue() != "it") {
++        language.setValue("en");
++#ifdef __PROSPERO__
++        // Existing console installs used to skip the only screen with language settings.
++        // Show it once when this new preference is introduced; later respect the user's choice.
++        getSettings().backend.skipPreLaunchUI.setValue(false);
++#endif
++        config::save();
++    }
++    sLocalized = language.getValue() != "en";
++    if (!sLocalized) return;
++    try {
++#ifdef __PROSPERO__
++        std::ifstream file(data::base_path_relative("res/locales/" + language.getValue() + ".json"));
++#else
++        std::ifstream file("res/locales/" + language.getValue() + ".json");
++#endif
++        const auto catalog = nlohmann::json::parse(file);
++        for (const auto& [key, value] : catalog.items()) {
++            if (value.is_string()) sText.emplace(key, value.get<std::string>());
++        }
++        DuskLog.info("Menu translations loaded: {} ({})", sText.size(), language.getValue());
++    } catch (const std::exception& error) {
++        // A missing optional catalog must not prevent access to disc selection or saves.
++        DuskLog.warn("Cannot load menu translations: {}", error.what());
++    }
++}
++
++Rml::String translate(const Rml::String& text) {
++    if (!sLocalized || text.empty()) return text;
++    const auto first = text.find_first_not_of(" \t\r\n");
++    if (first == Rml::String::npos) return text;
++    const auto last = text.find_last_not_of(" \t\r\n");
++    const auto found = sText.find(text.substr(first, last - first + 1));
++    if (found == sText.end()) return text;
++    return text.substr(0, first) + found->second + text.substr(last + 1);
++}
++
++void translate_document(Rml::Element* root) {
++    if (!sLocalized || root == nullptr) return;
++    if (auto* text = dynamic_cast<Rml::ElementText*>(root)) {
++        text->SetText(translate(text->GetText()));
++        return;
++    }
++    // Translate text nodes only. RML tags, resource paths and event attributes are unchanged.
++    for (int i = 0; i < root->GetNumChildren(); ++i) translate_document(root->GetChild(i));
++}
++}
+diff --git a/src/dusk/ui/localization.hpp b/src/dusk/ui/localization.hpp
+new file mode 100644
+index 0000000..82fc719
+--- /dev/null
++++ b/src/dusk/ui/localization.hpp
+@@ -0,0 +1,14 @@
++#pragma once
++
++#include <RmlUi/Core/Types.h>
++#include <string>
++
++namespace Rml { class Element; }
++
++namespace dusk::ui::localization {
++// Loaded once at startup. Changing the saved menu language requires a restart.
++const char* language_name(const std::string& id);
++void initialize() noexcept;
++Rml::String translate(const Rml::String& text);
++void translate_document(Rml::Element* root);
++}
+diff --git a/src/dusk/ui/modal.cpp b/src/dusk/ui/modal.cpp
+index 8bdc05f..adb928b 100644
+--- a/src/dusk/ui/modal.cpp
++++ b/src/dusk/ui/modal.cpp
+@@ -1,4 +1,5 @@
+ #include "modal.hpp"
++#include "localization.hpp"
+ 
+ #include <algorithm>
+ #include <utility>
+@@ -25,6 +26,7 @@ Modal::Modal(Props props) : WindowSmall("modal"), mProps(std::move(props)) {
+         append_text(body, *mProps.bodyText);
+     } else {
+         body->SetInnerRML(mProps.bodyRml);
++        localization::translate_document(body);
+     }
+ 
+     mContentRoot = append(mDialog, "modal-content");
+@@ -90,7 +92,9 @@ void Modal::add_action(ModalAction action) {
+ }
+ 
+ void Modal::set_body(const Rml::String& bodyRml) {
+-    mDialog->QuerySelector("modal-body")->SetInnerRML(bodyRml);
++    auto* body = mDialog->QuerySelector("modal-body");
++    body->SetInnerRML(bodyRml);
++    localization::translate_document(body);
+ }
+ 
+ void Modal::set_body_text(const Rml::String& bodyText) {
 diff --git a/src/dusk/ui/prelaunch.cpp b/src/dusk/ui/prelaunch.cpp
-index cadb742..c63a42b 100644
+index cadb742..cc5fb58 100644
 --- a/src/dusk/ui/prelaunch.cpp
 +++ b/src/dusk/ui/prelaunch.cpp
-@@ -1,4 +1,9 @@
+@@ -1,4 +1,11 @@
++#include "ps5_disc_picker.hpp"
++#include "localization.hpp"
  #include "prelaunch.hpp"
 +#ifdef __PROSPERO__
 +#include "ps5_storage.h"
@@ -182,7 +1838,7 @@ index cadb742..c63a42b 100644
  
  #include "dusk/app_info.hpp"
  #include "dusk/config.hpp"
-@@ -20,6 +25,7 @@
+@@ -20,6 +27,7 @@
  #include <SDL3/SDL_error.h>
  #include <SDL3/SDL_misc.h>
  #include <aurora/lib/window.hpp>
@@ -190,7 +1846,7 @@ index cadb742..c63a42b 100644
  #include <borealis/file_select.hpp>
  #include <borealis/io.hpp>
  #include <borealis/log.hpp>
-@@ -202,6 +208,10 @@ void begin_update_check() {
+@@ -202,6 +210,10 @@ void begin_update_check() {
      if (sUpdateCheck || sUpdateCheckResult.has_value()) {
          return;
      }
@@ -201,7 +1857,11 @@ index cadb742..c63a42b 100644
      sUpdateCheck = borealis::update::check_latest_github_release(AppInfo);
  }
  
-@@ -787,17 +797,57 @@ void ensure_initialized() noexcept {
+@@ -784,23 +796,32 @@ void ensure_initialized() noexcept {
+         verification_from_config(getSettings().backend.isoVerification.getValue());
+     state.initialLanguage = getSettings().game.language;
+     state.initialGraphicsBackend = getSettings().backend.graphicsBackend;
++    state.initialMenuLanguage = getSettings().backend.menuLanguage;
      state.initialCardFileType = getSettings().backend.cardFileType;
      state.errorString.clear();
      state.initialized = true;
@@ -214,40 +1874,7 @@ index cadb742..c63a42b 100644
  void open_iso_picker() noexcept {
      ensure_initialized();
 +#ifdef __PROSPERO__
-+    // SDL has no PS5 file-dialog backend. All entry points use this controller UI.
-+    Modal::Props props{.title = "Select Disc Image"};
-+    try {
-+        if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR"))
-+            throw std::runtime_error(error);
-+        const char* folder = std::getenv("DUSK_PS5_IMAGES");
-+        if (!folder) throw std::runtime_error("Protected disc folder is unavailable");
-+        auto available = ps5_storage::discs(folder);
-+        for (const char* usb : {"/mnt/usb0", "/mnt/usb1"}) {
-+            auto found = ps5_storage::discs(usb);
-+            available.insert(available.end(), found.begin(), found.end());
-+        }
-+        props.bodyText = available.empty() ?
-+            std::string("Close Dusklight and copy your GameCube ISO/GCM or CISO to ") +
-+                folder + ". Then reopen Dusklight and select it here. USA, PAL and Japan revision 0 are supported. Wii discs and other compressed formats are not supported." :
-+            "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.";
-+        for (const auto& disc : available) {
-+            props.actions.push_back(ModalAction{
-+                .label = disc.path.filename().string() + " (" + disc.region + ")",
-+                .onPressed = [path = disc.path.string()](Modal& modal) {
-+                    modal.pop();
-+                    begin_disc_verification(path);
-+                },
-+            });
-+        }
-+    } catch (const std::exception& error) {
-+        props.bodyText = error.what();
-+        props.icon = "warning";
-+    }
-+    props.actions.push_back(ModalAction{
-+        .label = "Cancel", .onPressed = [](Modal& modal) { modal.pop(); },
-+    });
-+    props.isVertical = true;
-+    if (auto* host = top_document()) host->push(std::make_unique<Modal>(std::move(props)));
++    open_ps5_disc_picker([](std::string path) { begin_disc_verification(std::move(path)); });
 +#else
      borealis::file_select::open_file(
          {
@@ -259,11 +1886,319 @@ index cadb742..c63a42b 100644
  }
  
  bool is_restart_pending() noexcept {
++    if (getSettings().backend.menuLanguage.getValue() != prelaunch_state().initialMenuLanguage) return true;
+     const auto& state = prelaunch_state();
+     if (!state.activeDiscPath.empty() && state.configuredDiscPath != state.activeDiscPath) {
+         return true;
+@@ -852,6 +873,9 @@ void Prelaunch::refresh_menu_buttons() {
+ 
+ Prelaunch::Prelaunch() : Document(kDocumentSource, false, DocumentScope::Prelaunch) {
+     mRoot = mDocument->GetElementById("root");
++#ifdef __PROSPERO__
++    mDocument->SetClass("ps5-iso-background",true);
++#endif
+     ensure_initialized();
+     begin_update_check();
+ 
+diff --git a/src/dusk/ui/prelaunch.hpp b/src/dusk/ui/prelaunch.hpp
+index 3929621..5bc2880 100644
+--- a/src/dusk/ui/prelaunch.hpp
++++ b/src/dusk/ui/prelaunch.hpp
+@@ -58,6 +58,7 @@ struct PrelaunchState {
+     GameLanguage unavailableLanguage = GameLanguage::English;
+     bool pendingLanguageUnavailableNotice = false;
+     std::string initialGraphicsBackend;
++    std::string initialMenuLanguage;
+     int initialCardFileType = 0;
+     std::string errorString;
+     std::string pendingDiscPath;
+diff --git a/src/dusk/ui/ps5_disc_picker.cpp b/src/dusk/ui/ps5_disc_picker.cpp
+new file mode 100644
+index 0000000..55afaab
+--- /dev/null
++++ b/src/dusk/ui/ps5_disc_picker.cpp
+@@ -0,0 +1,182 @@
++#include "ps5_disc_picker.hpp"
++#ifdef __PROSPERO__
++#include "localization.hpp"
++#include "modal.hpp"
++#include "format.hpp"
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#include <fmt/format.h>
++#include <algorithm>
++#include <atomic>
++#include <cstdlib>
++#include <mutex>
++#include <stdexcept>
++#include <thread>
++
++namespace dusk::ui {
++namespace {
++bool scan_open = false;
++using Selected = std::function<void(std::string)>;
++
++void show_choices(std::vector<ps5_storage::Disc> discs, const std::string& error, Selected selected) {
++    Modal::Props props{.title = "Select Disc Image"};
++    if (!error.empty()) {
++        props.bodyText = localization::translate(error);
++        props.icon = "warning";
++    } else if (discs.empty()) {
++        const char* folder = std::getenv("DUSK_PS5_IMAGES");
++        props.bodyText = localization::translate("No disc image found.") + "\n" +
++            std::string(folder ? folder : "") + "\n/mnt/usb0\n/mnt/usb1";
++    } else {
++        props.bodyText = "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.";
++        for (const auto& disc : discs) {
++            props.actions.push_back({
++                .label = disc.path.filename().string()+" ("+disc.region+")",
++                .onPressed = [path=disc.path.string(),selected](Modal& modal) {
++                    modal.pop();
++                    selected(path);
++                },
++            });
++        }
++    }
++    props.actions.push_back({.label="Cancel",.onPressed=[](Modal& modal) { modal.pop(); }});
++    props.isVertical = true;
++    if (auto* host = top_document()) host->push(std::make_unique<Modal>(std::move(props)));
++}
++
++class ScanWindow final : public WindowSmall {
++public:
++    explicit ScanWindow(Selected selected) : WindowSmall("modal"), mSelected(std::move(selected)) {
++        auto* header = append(mDialog,"modal-header");
++        append_text(append(header,"modal-title"),"Preparing disc selection");
++        auto* icon = append(header,"icon");
++        icon->SetClass("verifying",true);
++        auto* body = append(mDialog,"modal-body");
++        append_text(append(body,"div"),"Your menu stays visible while files are checked. Original files are retained.");
++        auto* content = append(body,"verification-progress");
++        mStage = append(content,"div");
++        mFile = append(content,"file-path");
++        mBar = append(content,"progress");
++        mBar->SetClass("info",true);
++        mDetail = append(content,"small");
++        set_text_content(mStage,"Searching disc images...");
++        mBar->SetAttribute("value",0.f);
++        auto* actions = append(mDialog,"modal-actions");
++        mCancelButton = std::make_unique<Button>(actions,"Cancel");
++        mCancelButton->root()->SetClass("modal-btn",true);
++        mCancelButton->on_pressed([this] { cancel(); });
++    }
++    ~ScanWindow() override {
++        mCancel.store(true,std::memory_order_relaxed);
++        if (mWorker.joinable()) mWorker.join();
++        if (!mFinished) scan_open = false;
++    }
++    void update() override {
++        WindowSmall::update();
++        if (mFinished) return;
++        if (mCancel.load(std::memory_order_relaxed) && !mWorker.joinable()) {
++            finish(false);
++            return;
++        }
++        // Allow the window/background to paint before starting disk I/O.
++        if (++mFrames == 2) {
++            try {
++                mWorker = std::thread([this] {
++                    try {
++                        if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR"))
++                            throw std::runtime_error(error);
++                        mDiscs = ps5_storage::scan([this](const ps5_storage::Progress& value) {
++                            if (mCancel.load(std::memory_order_relaxed)) return false;
++                            std::lock_guard guard(mMutex);
++                            mProgress = value;
++                            return true;
++                        },{"/mnt/usb0","/mnt/usb1"});
++                    } catch (const std::exception& error) {
++                        mError = error.what();
++                    } catch (...) {
++                        mError = "Unable to read the selected file.";
++                    }
++                    mDone.store(true,std::memory_order_release);
++                });
++            } catch (const std::exception& error) {
++                mError = error.what();
++                mDone.store(true,std::memory_order_release);
++            }
++        }
++        if (mDone.load(std::memory_order_acquire)) {
++            if (mWorker.joinable()) mWorker.join();
++            finish(!mCancel.load(std::memory_order_relaxed));
++            return;
++        }
++        if (mCancel.load(std::memory_order_relaxed)) return;
++        ps5_storage::Progress state;
++        { std::lock_guard guard(mMutex); state = mProgress; }
++        const char* stage = state.phase == ps5_storage::Phase::Copy ? "Backing up ISO..." :
++            state.phase == ps5_storage::Phase::Verify ? "Verifying backup..." : "Searching disc images...";
++        set_text_content(mStage,stage);
++        set_text_content(mFile,state.file);
++        if (state.total) {
++            const auto fraction = std::clamp(float(state.completed)/float(state.total),0.f,1.f);
++            mBar->SetAttribute("value",fraction);
++            if (state.phase == ps5_storage::Phase::Search) {
++                set_text_content(mDetail,localization::translate("Files checked")+": "+
++                    fmt::format("{} / {}",state.completed,state.total));
++            } else {
++                constexpr ByteFormat format{.gibFractionDigits=2,.mibFractionDigits=0};
++                set_text_content(mDetail,fmt::format("{} / {} ({:.0f}%)",
++                    format_bytes(state.completed,format),format_bytes(state.total,format),fraction*100.f));
++            }
++        } else {
++            // Directory enumeration has no known total. Animate a pulse and do
++            // not display a fabricated percentage until a real total is known.
++            mBar->SetAttribute("value",0.15f+0.7f*float(mFrames%120)/120.f);
++            set_text_content(mDetail,"Searching disc images...");
++        }
++    }
++    bool focus() override { return mCancelButton->focus(); }
++protected:
++    bool handle_nav_command(Rml::Event& event, NavCommand command) override {
++        if (command == NavCommand::Cancel || command == NavCommand::Menu) {
++            cancel(); event.StopPropagation(); return true;
++        }
++        return false;
++    }
++private:
++    void cancel() {
++        mCancel.store(true,std::memory_order_relaxed);
++        mCancelButton->set_text("Cancelling...");
++        mCancelButton->set_disabled(true);
++    }
++    void finish(bool show_result) {
++        mFinished = true;
++        scan_open = false;
++        pop();
++        if (show_result) show_choices(std::move(mDiscs),mError,mSelected);
++    }
++    Selected mSelected;
++    std::thread mWorker;
++    std::mutex mMutex;
++    ps5_storage::Progress mProgress;
++    std::vector<ps5_storage::Disc> mDiscs;
++    std::string mError;
++    std::atomic_bool mDone{false},mCancel{false};
++    bool mFinished = false;
++    unsigned mFrames = 0;
++    Rml::Element *mStage=nullptr,*mFile=nullptr,*mBar=nullptr,*mDetail=nullptr;
++    std::unique_ptr<Button> mCancelButton;
++};
++}
++
++void open_ps5_disc_picker(Selected selected) {
++    if (scan_open) return;
++    if (auto* host = top_document()) {
++        auto window = std::make_unique<ScanWindow>(std::move(selected));
++        scan_open = true;
++        host->push(std::move(window));
++    }
++}
++}
++#endif
+diff --git a/src/dusk/ui/ps5_disc_picker.hpp b/src/dusk/ui/ps5_disc_picker.hpp
+new file mode 100644
+index 0000000..d843f88
+--- /dev/null
++++ b/src/dusk/ui/ps5_disc_picker.hpp
+@@ -0,0 +1,10 @@
++#pragma once
++#ifdef __PROSPERO__
++#include <functional>
++#include <string>
++
++namespace dusk::ui {
++// Opens a non-blocking search/protection window over the existing menu image.
++void open_ps5_disc_picker(std::function<void(std::string)> on_selected);
++}
++#endif
+diff --git a/src/dusk/ui/settings.cpp b/src/dusk/ui/settings.cpp
+index 45a710a..003a18c 100644
+--- a/src/dusk/ui/settings.cpp
++++ b/src/dusk/ui/settings.cpp
+@@ -1,3 +1,4 @@
++#include "localization.hpp"
+ #include "settings.hpp"
+ 
+ #include "bool_button.hpp"
+@@ -1465,6 +1466,36 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
+         auto& rightPane = add_child<Pane>(content, Pane::Type::Uncontrolled);
+ 
+         leftPane.add_section("Dusklight");
++        leftPane.register_control(
++            leftPane.add_select_button({
++                .key = "Menu language",
++                .getValue = [] {
++                    return Rml::String{localization::language_name(getSettings().backend.menuLanguage.getValue())};
++                },
++                .isModified = [] {
++                    return getSettings().backend.menuLanguage.getValue() !=
++                           prelaunch_state().initialMenuLanguage;
++                },
++            }),
++            rightPane, [](Pane& pane) {
++                pane.clear();
++                for (const auto& option : std::array<std::pair<const char*, const char*>, 5>{{
++                         {"en", "English"}, {"fr", "Français"}, {"de", "Deutsch"},
++                         {"es", "Español"}, {"it", "Italiano"}}}) {
++                    const std::string id = option.first;
++                    pane.add_button({
++                        .text = option.second,
++                        .isSelected = [id] {
++                            return getSettings().backend.menuLanguage.getValue() == id;
++                        },
++                    }).on_pressed([id] {
++                        mDoAud_seStartMenu(kSoundItemChange);
++                        getSettings().backend.menuLanguage.setValue(id);
++                        config::save();
++                    });
++                }
++                pane.add_text("Choose the language of the startup interface. Game text has its own language setting. Close and reopen Dusklight after changing this option.");
++            });
+ #if DUSK_CAN_OPEN_DATA_FOLDER
+         leftPane.register_control(
+             leftPane.add_button("Open Data Folder").on_pressed([] {
+diff --git a/src/dusk/ui/ui.cpp b/src/dusk/ui/ui.cpp
+index 88f19a5..227ecf2 100644
+--- a/src/dusk/ui/ui.cpp
++++ b/src/dusk/ui/ui.cpp
+@@ -1,4 +1,5 @@
+ #include "ui.hpp"
++#include "localization.hpp"
+ 
+ #include "command_console.hpp"
+ #include "drop_install_modal.hpp"
+@@ -582,7 +583,7 @@ Rml::Element* append_text(Rml::Element* parent, const Rml::String& text) noexcep
+     if (doc == nullptr) {
+         return nullptr;
+     }
+-    return parent->AppendChild(doc->CreateTextNode(text));
++    return parent->AppendChild(doc->CreateTextNode(localization::translate(text)));
+ }
+ 
+ Rml::Element* append_text_element(
+@@ -608,7 +609,7 @@ void set_text_content(Rml::Element* parent, const Rml::String& text) noexcept {
+     if (!text.empty() && parent->GetNumChildren() == 1) {
+         if (auto* element = dynamic_cast<Rml::ElementText*>(parent->GetFirstChild())) {
+             // RmlUi only dirties layout when the node's text changes.
+-            element->SetText(text);
++            element->SetText(localization::translate(text));
+             return;
+         }
+     }
 diff --git a/src/m_Do/m_Do_main.cpp b/src/m_Do/m_Do_main.cpp
-index 58a1f3b..4ba4e2f 100644
+index 58a1f3b..ae61849 100644
 --- a/src/m_Do/m_Do_main.cpp
 +++ b/src/m_Do/m_Do_main.cpp
-@@ -4,6 +4,13 @@
+@@ -1,9 +1,17 @@
++#include "dusk/ui/localization.hpp"
+ /**
+  * m_Do_main.cpp
+  * Main Initialization
   * PC Port Version - based on Aurora integration from Vorversion
   */
  
@@ -277,7 +2212,7 @@ index 58a1f3b..4ba4e2f 100644
  #include "m_Do/m_Do_main.h"
  #include "DynamicLink.h"
  #include "JSystem/JAudio2/JASAudioThread.h"
-@@ -627,6 +634,32 @@ int game_main(int argc, char* argv[]) {
+@@ -627,6 +635,32 @@ int game_main(int argc, char* argv[]) {
  
      dusk::registerSettings();
  
@@ -293,7 +2228,7 @@ index 58a1f3b..4ba4e2f 100644
 +        const auto title = ps5_storage::title_id(std::filesystem::path(app) / "sce_sys/param.json");
 +        const auto root = std::filesystem::path("/data/dusklight") / title;
 +        const auto protectedData = ps5_storage::prepare({app, root,
-+            std::filesystem::path("/data/prosperostore/previous") / title, download});
++            std::filesystem::path("/data/prosperostore/previous") / title, download}, false);
 +        if (!protectedData.error.empty()) throw std::runtime_error(protectedData.error);
 +        standardOptions.userDir = protectedData.user;
 +        setenv("DUSK_PS5_IMAGES", protectedData.images.c_str(), 1);
@@ -310,25 +2245,26 @@ index 58a1f3b..4ba4e2f 100644
      const auto dataPaths = dusk::data::initialize_data(standardOptions.userDir);
      dusk::ConfigPath = dataPaths.userPath;
      dusk::CachePath = dataPaths.cachePath;
-@@ -643,6 +676,27 @@ int game_main(int argc, char* argv[]) {
+@@ -643,6 +677,28 @@ int game_main(int argc, char* argv[]) {
  
      dusk::config::load_from_user_preferences();
      ApplyCVarOverrides(parsed_arg_options["cvar"]);
++    dusk::ui::localization::initialize();
 +#ifdef __PROSPERO__
-+    try {
-+        if (!std::getenv("DUSK_PS5_STORAGE_ERROR")) {
-+            const char* folder = std::getenv("DUSK_PS5_IMAGES");
-+            if (!folder) throw std::runtime_error("Protected disc folder is unavailable");
-+            const auto selected = ps5_storage::startup_disc(
-+                dusk::getSettings().backend.isoPath.getValue(), folder, {"/mnt/usb0", "/mnt/usb1"});
-+            if (selected != dusk::getSettings().backend.isoPath.getValue()) {
-+                dusk::getSettings().backend.isoPath.setValue(selected);
-+                dusk::getSettings().backend.isoVerification.setValue(dusk::DiscVerificationState::Unknown);
-+                dusk::config::save();
-+            }
++    // Restore only the already chosen path. Directory discovery and expensive
++    // ISO protection now run inside the visible picker, never before first paint.
++    {
++        const auto saved = dusk::getSettings().backend.isoPath.getValue();
++        const char* images = std::getenv("DUSK_PS5_IMAGES");
++        const std::filesystem::path path(saved);
++        bool protectedChoice = images && path.parent_path() == std::filesystem::path(images);
++        const bool externalChoice = path.parent_path() == "/mnt/usb0" || path.parent_path() == "/mnt/usb1";
++        std::error_code ec;
++        if (!saved.empty() && ((!protectedChoice && !externalChoice) ||
++            !std::filesystem::is_regular_file(path,ec))) {
++            dusk::getSettings().backend.isoPath.setValue("");
++            dusk::getSettings().backend.isoVerification.setValue(dusk::DiscVerificationState::Unknown);
 +        }
-+    } catch (const std::exception& error) {
-+        setenv("DUSK_PS5_STORAGE_ERROR", error.what(), 1);
 +    }
 +    if (std::getenv("DUSK_PS5_STORAGE_ERROR")) {
 +        dusk::getSettings().backend.isoPath.setValue("");
@@ -338,7 +2274,7 @@ index 58a1f3b..4ba4e2f 100644
      borealis::sentry::Options sentryOptions{
          .release = fmt::format("{}@{}", dusk::AppInfo.appName, BOREALIS_APP_DESCRIBE),
          .databaseDirectory = dusk::CachePath / "sentry",
-@@ -707,7 +761,21 @@ int game_main(int argc, char* argv[]) {
+@@ -707,7 +763,21 @@ int game_main(int argc, char* argv[]) {
          config.allowJoystickBackgroundEvents = dusk::getSettings().game.allowBackgroundInput;
          config.pauseOnFocusLost = dusk::getSettings().game.pauseOnFocusLost;
          config.imGuiInitCallback = &aurora_imgui_init_callback;

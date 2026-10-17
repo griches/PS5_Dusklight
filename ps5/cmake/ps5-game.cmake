@@ -38,7 +38,7 @@ add_library(ps5_platform STATIC ${ps5}/src/platform.c ${ps5}/src/shims.c ${ps5}/
 target_compile_features(ps5_platform PRIVATE cxx_std_20)
 target_include_directories(ps5_platform PRIVATE ${ps5}/nod/include)
 # The patched upstream calls this PS5-only helper; keep the submodule pin unchanged.
-include_directories(${ps5}/src)
+include_directories(${ps5}/src ${ps5}/art)
 target_include_directories(ps5_platform PUBLIC ${ps5}/src)
 target_include_directories(ps5_platform PRIVATE ${SDL_DIR}/include)
 file(READ ${ps5}/sce_sys/param.json param_json)
