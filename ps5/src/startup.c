@@ -20,7 +20,6 @@
 __attribute__((constructor)) static void
 ps5_startup(void)
 {
-   platform_init(PS5_TITLE_NAME);
    /* Hold the app's cwd across a possible root transition. Resolving it afterwards
     * with the SDK's getcwd retains the actual mounted files even if /app0 vanishes. */
    const int app_cwd = chdir("/app0");
@@ -28,13 +27,19 @@ ps5_startup(void)
     * Ask only when /data is not available, before any worker threads exist.
     * Failure is handled by a visible startup error; never use an unprotected ISO
     * or save directory as a silent fallback. No daemon is installed or started. */
-   if (access("/data", R_OK | W_OK) != 0) {
-      enum ps5_elevation_status status = ps5_elevation_request(PS5_ELEVATION_FILESYSTEM);
-      say("persistent data access: %s", ps5_elevation_status_name(status));
+   const int needs_data_access = access("/data", R_OK | W_OK) != 0;
+   enum ps5_elevation_status status = PS5_ELEVATION_OK;
+   if (needs_data_access) {
+      status = ps5_elevation_request(PS5_ELEVATION_FILESYSTEM);
       if (status != PS5_ELEVATION_OK)
          setenv("DUSK_PS5_STORAGE_ERROR",
             "Persistent /data is unavailable. Start the Lapy owned-root daemon before Dusklight, then reopen the app. Original ISO and save files were retained.", 1);
    }
+   /* Logging starts a klog reader thread. Keep it after the optional filesystem
+    * request, which must run before any workers exist. */
+   platform_init(PS5_TITLE_NAME);
+   if (needs_data_access)
+      say("persistent data access: %s", ps5_elevation_status_name(status));
    char app[4096], download[4096];
    if (app_cwd == 0 && ps5_getcwd(app, sizeof(app) - 1)) {
       const size_t length = strlen(app);
