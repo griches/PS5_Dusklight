@@ -79,7 +79,10 @@ Compiler: $(${PS5_CLANG:-clang} --version | head -1)
 
 No game data is included. The Legend of Zelda: Twilight Princess belongs to
 Nintendo; this title does nothing without a GameCube disc image (.iso or .ciso)
-that you provide, placed beside eboot.bin. The pictures in sce_sys/ are the
+that you provide in /data/dusklight/$title_id/images/ (legacy app-folder images
+are imported on first protected launch). Saves/settings use the sibling user/
+directory so later app-folder replacement does not own personal data.
+The pictures in sce_sys/ are the
 port's own, made for it with an image generator; nothing in them is from the game.
 
 eboot.bin sha256: $(sha256sum "$app/eboot.bin" | cut -d' ' -f1)

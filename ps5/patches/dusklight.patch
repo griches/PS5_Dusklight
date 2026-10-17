@@ -1,5 +1,17 @@
+diff --git a/extern/aurora b/extern/aurora
+--- a/extern/aurora
++++ b/extern/aurora
+@@ -1 +1 @@
+-Subproject commit 3227d76c60e1e782ca576610bce61c9e7744d8be
++Subproject commit 3227d76c60e1e782ca576610bce61c9e7744d8be-dirty
+diff --git a/extern/borealis b/extern/borealis
+--- a/extern/borealis
++++ b/extern/borealis
+@@ -1 +1 @@
+-Subproject commit 4ac5e7052a8c49a122f8d57f626b5c75c5ca6968
++Subproject commit 4ac5e7052a8c49a122f8d57f626b5c75c5ca6968-dirty
 diff --git a/libs/JSystem/src/J2DGraph/J2DScreen.cpp b/libs/JSystem/src/J2DGraph/J2DScreen.cpp
-index 603ab512f7..267d976848 100644
+index 603ab51..267d976 100644
 --- a/libs/JSystem/src/J2DGraph/J2DScreen.cpp
 +++ b/libs/JSystem/src/J2DGraph/J2DScreen.cpp
 @@ -66,6 +66,61 @@ bool J2DScreen::setPriority(JSURandomInputStream* p_stream, u32 param_1, JKRArch
@@ -77,7 +89,7 @@ index 603ab512f7..267d976848 100644
          clean();
      }
 diff --git a/src/dusk/mods/loader/prepatch.cpp b/src/dusk/mods/loader/prepatch.cpp
-index 26c802a3cd..104f0f90b2 100644
+index 26c802a..104f0f9 100644
 --- a/src/dusk/mods/loader/prepatch.cpp
 +++ b/src/dusk/mods/loader/prepatch.cpp
 @@ -253,8 +253,13 @@ std::optional<Site> lookup(void* runtimeTarget) {
@@ -95,7 +107,7 @@ index 26c802a3cd..104f0f90b2 100644
  
  }  // namespace dusk::mods::prepatch
 diff --git a/src/dusk/mods/updates.cpp b/src/dusk/mods/updates.cpp
-index 09154d018c..8a0524f22a 100644
+index 09154d0..8a0524f 100644
 --- a/src/dusk/mods/updates.cpp
 +++ b/src/dusk/mods/updates.cpp
 @@ -420,12 +420,12 @@ uint64_t download_size() noexcept {
@@ -115,17 +127,19 @@ index 09154d018c..8a0524f22a 100644
          return "Checking for mod updates…";
      }
 diff --git a/src/dusk/texture_replacements.cpp b/src/dusk/texture_replacements.cpp
-index 118989c6a7..ddfbe2e147 100644
+index 118989c..a83eeb0 100644
 --- a/src/dusk/texture_replacements.cpp
 +++ b/src/dusk/texture_replacements.cpp
-@@ -6,9 +6,18 @@
+@@ -5,10 +5,20 @@
+ #include "dusk/logging.h"
  #include "dusk/main.h"
  #include "dusk/settings.h"
- 
++#include "dusk/data.hpp"
++
 +#ifdef __PROSPERO__
 +#include <sys/stat.h>
 +#endif
-+
+ 
  namespace dusk::texture_replacements {
  namespace {
  aurora::texture::ReplacementGroup s_directoryGroup;
@@ -137,7 +151,7 @@ index 118989c6a7..ddfbe2e147 100644
  }
  
  void reload() {
-@@ -24,6 +33,16 @@ void reload() {
+@@ -24,6 +34,16 @@ void reload() {
          root, {.priority = kUserTextureReplacementPriority});
      DuskLog.info("Texture replacement directory loaded: {} registration(s)",
                   s_directoryGroup.registrations.size());
@@ -148,17 +162,27 @@ index 118989c6a7..ddfbe2e147 100644
 +    aurora::texture::unregister_replacements(s_ps5GlyphGroup);
 +    s_ps5GlyphGroup.registrations.clear();
 +    s_ps5GlyphGroup = aurora::texture::load_replacement_directory(
-+        "/app0/res/ps5-glyphs", {.priority = kUserTextureReplacementPriority - 2});
++        data::base_path_relative("res/ps5-glyphs"), {.priority = kUserTextureReplacementPriority - 2});
 +    DuskLog.info("PS5 button glyphs: {} registration(s)", s_ps5GlyphGroup.registrations.size());
 +#endif
  }
  
  void shutdown() {
 diff --git a/src/dusk/ui/prelaunch.cpp b/src/dusk/ui/prelaunch.cpp
-index cadb7423e1..2c4f17cd9e 100644
+index cadb742..c63a42b 100644
 --- a/src/dusk/ui/prelaunch.cpp
 +++ b/src/dusk/ui/prelaunch.cpp
-@@ -20,6 +20,7 @@
+@@ -1,4 +1,9 @@
+ #include "prelaunch.hpp"
++#ifdef __PROSPERO__
++#include "ps5_storage.h"
++#include <cstdlib>
++#include <stdexcept>
++#endif
+ 
+ #include "dusk/app_info.hpp"
+ #include "dusk/config.hpp"
+@@ -20,6 +25,7 @@
  #include <SDL3/SDL_error.h>
  #include <SDL3/SDL_misc.h>
  #include <aurora/lib/window.hpp>
@@ -166,7 +190,7 @@ index cadb7423e1..2c4f17cd9e 100644
  #include <borealis/file_select.hpp>
  #include <borealis/io.hpp>
  #include <borealis/log.hpp>
-@@ -202,6 +203,10 @@ void begin_update_check() {
+@@ -202,6 +208,10 @@ void begin_update_check() {
      if (sUpdateCheck || sUpdateCheckResult.has_value()) {
          return;
      }
@@ -177,22 +201,144 @@ index cadb7423e1..2c4f17cd9e 100644
      sUpdateCheck = borealis::update::check_latest_github_release(AppInfo);
  }
  
+@@ -787,17 +797,57 @@ void ensure_initialized() noexcept {
+     state.initialCardFileType = getSettings().backend.cardFileType;
+     state.errorString.clear();
+     state.initialized = true;
++#ifdef __PROSPERO__
++    if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR")) state.errorString = error;
++#endif
+     refresh_configured_disc_state();
+ }
+ 
+ void open_iso_picker() noexcept {
+     ensure_initialized();
++#ifdef __PROSPERO__
++    // SDL has no PS5 file-dialog backend. All entry points use this controller UI.
++    Modal::Props props{.title = "Select Disc Image"};
++    try {
++        if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR"))
++            throw std::runtime_error(error);
++        const char* folder = std::getenv("DUSK_PS5_IMAGES");
++        if (!folder) throw std::runtime_error("Protected disc folder is unavailable");
++        auto available = ps5_storage::discs(folder);
++        for (const char* usb : {"/mnt/usb0", "/mnt/usb1"}) {
++            auto found = ps5_storage::discs(usb);
++            available.insert(available.end(), found.begin(), found.end());
++        }
++        props.bodyText = available.empty() ?
++            std::string("Close Dusklight and copy your GameCube ISO/GCM or CISO to ") +
++                folder + ". Then reopen Dusklight and select it here. USA, PAL and Japan revision 0 are supported. Wii discs and other compressed formats are not supported." :
++            "Choose a GameCube disc image. A changed disc takes effect after restarting Dusklight.";
++        for (const auto& disc : available) {
++            props.actions.push_back(ModalAction{
++                .label = disc.path.filename().string() + " (" + disc.region + ")",
++                .onPressed = [path = disc.path.string()](Modal& modal) {
++                    modal.pop();
++                    begin_disc_verification(path);
++                },
++            });
++        }
++    } catch (const std::exception& error) {
++        props.bodyText = error.what();
++        props.icon = "warning";
++    }
++    props.actions.push_back(ModalAction{
++        .label = "Cancel", .onPressed = [](Modal& modal) { modal.pop(); },
++    });
++    props.isVertical = true;
++    if (auto* host = top_document()) host->push(std::make_unique<Modal>(std::move(props)));
++#else
+     borealis::file_select::open_file(
+         {
+             .parentWindow = aurora::window::get_sdl_window(),
+             .filters = kDiscFileFilters,
+         },
+         &file_dialog_callback);
++#endif
+ }
+ 
+ bool is_restart_pending() noexcept {
 diff --git a/src/m_Do/m_Do_main.cpp b/src/m_Do/m_Do_main.cpp
-index 58a1f3bfbd..0d91eff36f 100644
+index 58a1f3b..4ba4e2f 100644
 --- a/src/m_Do/m_Do_main.cpp
 +++ b/src/m_Do/m_Do_main.cpp
-@@ -4,6 +4,10 @@
+@@ -4,6 +4,13 @@
   * PC Port Version - based on Aurora integration from Vorversion
   */
  
 +#ifdef __PROSPERO__
 +#include <sys/stat.h>
++#include "ps5_storage.h"
++#include <exception>
++#include <stdexcept>
 +#include <unistd.h>
 +#endif
  #include "m_Do/m_Do_main.h"
  #include "DynamicLink.h"
  #include "JSystem/JAudio2/JASAudioThread.h"
-@@ -707,7 +711,21 @@ int game_main(int argc, char* argv[]) {
+@@ -627,6 +634,32 @@ int game_main(int argc, char* argv[]) {
+ 
+     dusk::registerSettings();
+ 
++#ifdef __PROSPERO__
++    // Do this after C++ static initialization, before any settings or saves open.
++    // The installer owns /app0; persistent personal data must live outside it.
++    try {
++        if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR"))
++            throw std::runtime_error(error);
++        const char* app = std::getenv("DUSK_PS5_APP_ROOT");
++        const char* download = std::getenv("DUSK_PS5_DOWNLOAD_ROOT");
++        if (!app || !download) throw std::runtime_error("Cannot resolve this title's mounted folders");
++        const auto title = ps5_storage::title_id(std::filesystem::path(app) / "sce_sys/param.json");
++        const auto root = std::filesystem::path("/data/dusklight") / title;
++        const auto protectedData = ps5_storage::prepare({app, root,
++            std::filesystem::path("/data/prosperostore/previous") / title, download});
++        if (!protectedData.error.empty()) throw std::runtime_error(protectedData.error);
++        standardOptions.userDir = protectedData.user;
++        setenv("DUSK_PS5_IMAGES", protectedData.images.c_str(), 1);
++        const auto home = root.string();
++        SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "HOME", home.c_str(), true);
++        SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "XDG_DATA_HOME", protectedData.user.c_str(), true);
++    } catch (const std::exception& error) {
++        setenv("DUSK_PS5_STORAGE_ERROR", error.what(), 1);
++        // Show the error from a temporary config; never open old saves on failure.
++        const char* download = std::getenv("DUSK_PS5_DOWNLOAD_ROOT");
++        standardOptions.userDir = std::filesystem::path(download ? download : "/download0") / "dusklight-storage-error";
++    }
++#endif
+     const auto dataPaths = dusk::data::initialize_data(standardOptions.userDir);
+     dusk::ConfigPath = dataPaths.userPath;
+     dusk::CachePath = dataPaths.cachePath;
+@@ -643,6 +676,27 @@ int game_main(int argc, char* argv[]) {
+ 
+     dusk::config::load_from_user_preferences();
+     ApplyCVarOverrides(parsed_arg_options["cvar"]);
++#ifdef __PROSPERO__
++    try {
++        if (!std::getenv("DUSK_PS5_STORAGE_ERROR")) {
++            const char* folder = std::getenv("DUSK_PS5_IMAGES");
++            if (!folder) throw std::runtime_error("Protected disc folder is unavailable");
++            const auto selected = ps5_storage::startup_disc(
++                dusk::getSettings().backend.isoPath.getValue(), folder, {"/mnt/usb0", "/mnt/usb1"});
++            if (selected != dusk::getSettings().backend.isoPath.getValue()) {
++                dusk::getSettings().backend.isoPath.setValue(selected);
++                dusk::getSettings().backend.isoVerification.setValue(dusk::DiscVerificationState::Unknown);
++                dusk::config::save();
++            }
++        }
++    } catch (const std::exception& error) {
++        setenv("DUSK_PS5_STORAGE_ERROR", error.what(), 1);
++    }
++    if (std::getenv("DUSK_PS5_STORAGE_ERROR")) {
++        dusk::getSettings().backend.isoPath.setValue("");
++        dusk::getSettings().backend.skipPreLaunchUI.setValue(false);
++    }
++#endif
+     borealis::sentry::Options sentryOptions{
+         .release = fmt::format("{}@{}", dusk::AppInfo.appName, BOREALIS_APP_DESCRIBE),
+         .databaseDirectory = dusk::CachePath / "sentry",
+@@ -707,7 +761,21 @@ int game_main(int argc, char* argv[]) {
          config.allowJoystickBackgroundEvents = dusk::getSettings().game.allowBackgroundInput;
          config.pauseOnFocusLost = dusk::getSettings().game.pauseOnFocusLost;
          config.imGuiInitCallback = &aurora_imgui_init_callback;
@@ -214,37 +360,3 @@ index 58a1f3bfbd..0d91eff36f 100644
          auroraInfo = aurora_initialize(argc, argv, &config);
      }
  
-@@ -774,6 +792,33 @@ int game_main(int argc, char* argv[]) {
-         return dvdPathAccess ? borealis::io::fs_path_to_string(dvdPathAccess.path()) : location;
-     };
- 
-+#if defined(__PROSPERO__)
-+    // PlayStation 5: there is no file dialog. With no disc image chosen yet, take the first
-+    // .iso or .ciso in the title's own folder (/data/homebrew/<TITLE_ID>, all of /data a title
-+    // can see), then on a USB drive.
-+    if (dusk::getSettings().backend.isoPath.getValue().empty()) {
-+        for (const char* dir : {"/app0", "/mnt/usb0", "/mnt/usb1"}) {
-+            std::error_code ec;
-+            std::string found;
-+            for (std::filesystem::directory_iterator it{dir, ec}, end; !ec && it != end; it.increment(ec)) {
-+                std::string extension = it->path().extension().string();
-+                for (char& c : extension) {
-+                    c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
-+                }
-+                if (extension == ".iso" || extension == ".gcm" || extension == ".ciso") {
-+                    found = it->path().string();
-+                    break;
-+                }
-+            }
-+            if (!found.empty()) {
-+                DuskLog.info("Found a disc image: {}", found);
-+                dusk::getSettings().backend.isoPath.setValue(found);
-+                break;
-+            }
-+        }
-+    }
-+#endif
-+
-     const std::string savedLocation = dusk::getSettings().backend.isoPath;
-     dusk::iso::DiscInfo discInfo{};
-     if (!savedLocation.empty() &&
