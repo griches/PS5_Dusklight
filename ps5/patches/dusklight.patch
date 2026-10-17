@@ -171,10 +171,10 @@ index 603ab51..267d976 100644
      }
 diff --git a/res/locales/de.json b/res/locales/de.json
 new file mode 100644
-index 0000000..ba902b1
+index 0000000..8ce37b1
 --- /dev/null
 +++ b/res/locales/de.json
-@@ -0,0 +1,296 @@
+@@ -0,0 +1,319 @@
 +{
 +  "presents": "präsentiert",
 +  "Play": "Spielen",
@@ -469,14 +469,37 @@ index 0000000..ba902b1
 +  "This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.": "Diese ISO liegt im App-Ordner. Verschiebe sie vor dem Spielen nach außerhalb, damit ein Store-Update sie nicht löschen kann. Es bleibt keine dauerhafte zweite Kopie zurück.",
 +  "No items": "Keine Einträge",
 +  "Source changed during move. Both files were retained.": "Die Quelldatei hat sich während des Verschiebens geändert. Beide Dateien bleiben erhalten.",
-+  "The ISO is protected, but its original could not be removed. Both files were retained.": "Die ISO liegt sicher außerhalb des App-Ordners, aber das Original konnte nicht entfernt werden. Beide Dateien bleiben erhalten."
++  "The ISO is protected, but its original could not be removed. Both files were retained.": "Die ISO liegt sicher außerhalb des App-Ordners, aber das Original konnte nicht entfernt werden. Beide Dateien bleiben erhalten.",
++  "Save folder": "Spielstandordner",
++  "Copy to internal SSD and use": "Auf interne SSD kopieren und verwenden",
++  "Use directly": "Direkt verwenden",
++  "Use this folder": "Diesen Ordner verwenden",
++  "Copy current saves and use": "Aktuelle Spielstände kopieren und verwenden",
++  "Operation failed. Original files were retained.": "Vorgang fehlgeschlagen. Originaldateien wurden beibehalten.",
++  "Copying saves...": "Spielstände werden kopiert …",
++  "Copying ISO...": "ISO wird kopiert …",
++  "Verifying files...": "Dateien werden geprüft …",
++  "Choose a folder for saves. Use its existing saves or copy your current saves there. Changes require a restart.": "Wähle einen Spielstandordner. Verwende dessen vorhandene Spielstände oder kopiere deine aktuellen dorthin. Änderungen erfordern einen Neustart.",
++  "Choose a folder for saves. Restart the app before copying saves from a running game.": "Wähle einen Spielstandordner. Starte die App neu, bevor du Spielstände eines laufenden Spiels kopierst.",
++  "Copy this ISO to protected internal storage, or use it directly. Copying keeps the original on its drive.": "Kopiere diese ISO in den geschützten internen Speicher oder verwende sie direkt. Beim Kopieren bleibt das Original auf seinem Laufwerk.",
++  "Protected internal folder": "Geschützter interner Ordner",
++  "Save location only. Settings and textures stay in internal storage.": "Nur der Spielstandort wird geändert. Einstellungen und Texturen bleiben im internen Speicher.",
++  "Choose save folder": "Spielstandordner auswählen",
++  "Use default save folder": "Standard-Spielstandordner verwenden",
++  "Changes require a restart. Existing saves are never overwritten. Returning to the default folder uses its existing saves.": "Änderungen erfordern einen Neustart. Vorhandene Spielstände werden nicht überschrieben. Beim Zurücksetzen werden die Spielstände im Standardordner verwendet.",
++  "Save folder unavailable. Connect its drive or choose another folder in Settings.": "Spielstandordner nicht verfügbar. Verbinde das Laufwerk oder wähle in den Einstellungen einen anderen Ordner.",
++  "Save folder unavailable. Connect its drive or choose it again in Settings.": "Spielstandordner nicht verfügbar. Verbinde das Laufwerk oder wähle den Ordner erneut in den Einstellungen.",
++  "Choose a save folder outside the application and ISO folders.": "Wähle einen Spielstandordner außerhalb der App- und ISO-Ordner.",
++  "Save folder is not writable.": "Spielstandordner ist nicht beschreibbar.",
++  "Different saves already exist in this folder. Nothing was overwritten. Choose another folder or use its existing saves.": "In diesem Ordner liegen andere Spielstände. Es wurde nichts überschrieben. Wähle einen anderen Ordner oder verwende die vorhandenen Spielstände.",
++  "Choose a separate save folder, not a parent or child of the current folder.": "Wähle einen separaten Spielstandordner, keinen über- oder untergeordneten Ordner des aktuellen."
 +}
 diff --git a/res/locales/es.json b/res/locales/es.json
 new file mode 100644
-index 0000000..75245e1
+index 0000000..a89af68
 --- /dev/null
 +++ b/res/locales/es.json
-@@ -0,0 +1,296 @@
+@@ -0,0 +1,319 @@
 +{
 +  "presents": "presenta",
 +  "Play": "Jugar",
@@ -771,14 +794,37 @@ index 0000000..75245e1
 +  "This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.": "Esta ISO está en la carpeta de la aplicación. Muévela fuera antes de jugar para que una actualización de la tienda no la elimine. No hace falta una segunda copia permanente.",
 +  "No items": "Sin elementos",
 +  "Source changed during move. Both files were retained.": "El archivo de origen cambió durante el traslado. Se conservaron ambos archivos.",
-+  "The ISO is protected, but its original could not be removed. Both files were retained.": "La ISO está protegida, pero no se pudo eliminar el original. Se conservaron ambos archivos."
++  "The ISO is protected, but its original could not be removed. Both files were retained.": "La ISO está protegida, pero no se pudo eliminar el original. Se conservaron ambos archivos.",
++  "Save folder": "Carpeta de partidas",
++  "Copy to internal SSD and use": "Copiar al SSD interno y usar",
++  "Use directly": "Usar directamente",
++  "Use this folder": "Usar esta carpeta",
++  "Copy current saves and use": "Copiar partidas actuales y usar",
++  "Operation failed. Original files were retained.": "La operación falló. Se conservaron los archivos originales.",
++  "Copying saves...": "Copiando partidas…",
++  "Copying ISO...": "Copiando ISO…",
++  "Verifying files...": "Verificando archivos…",
++  "Choose a folder for saves. Use its existing saves or copy your current saves there. Changes require a restart.": "Elige una carpeta. Usa sus partidas existentes o copia las actuales. Se requiere reiniciar.",
++  "Choose a folder for saves. Restart the app before copying saves from a running game.": "Elige una carpeta. Reinicia la aplicación antes de copiar partidas de un juego en curso.",
++  "Copy this ISO to protected internal storage, or use it directly. Copying keeps the original on its drive.": "Copia esta ISO al almacenamiento interno protegido o úsala directamente. El original se conserva en su unidad.",
++  "Protected internal folder": "Carpeta interna protegida",
++  "Save location only. Settings and textures stay in internal storage.": "Solo cambia la ubicación de las partidas. Los ajustes y texturas permanecen en la memoria interna.",
++  "Choose save folder": "Elegir carpeta de partidas",
++  "Use default save folder": "Usar carpeta predeterminada",
++  "Changes require a restart. Existing saves are never overwritten. Returning to the default folder uses its existing saves.": "Se requiere reiniciar. No se sobrescriben partidas existentes. Al volver a la carpeta predeterminada se usan sus propias partidas.",
++  "Save folder unavailable. Connect its drive or choose another folder in Settings.": "Carpeta de partidas no disponible. Conecta su unidad o elige otra carpeta en Ajustes.",
++  "Save folder unavailable. Connect its drive or choose it again in Settings.": "Carpeta de partidas no disponible. Conecta su unidad o selecciónala de nuevo en Ajustes.",
++  "Choose a save folder outside the application and ISO folders.": "Elige una carpeta fuera de las carpetas de la aplicación y las ISO.",
++  "Save folder is not writable.": "No se puede escribir en la carpeta de partidas.",
++  "Different saves already exist in this folder. Nothing was overwritten. Choose another folder or use its existing saves.": "Esta carpeta ya contiene partidas diferentes. No se sobrescribió nada. Elige otra carpeta o usa las partidas existentes.",
++  "Choose a separate save folder, not a parent or child of the current folder.": "Elige una carpeta independiente, que no sea superior ni inferior a la actual."
 +}
 diff --git a/res/locales/fr.json b/res/locales/fr.json
 new file mode 100644
-index 0000000..331997d
+index 0000000..aa35e17
 --- /dev/null
 +++ b/res/locales/fr.json
-@@ -0,0 +1,296 @@
+@@ -0,0 +1,319 @@
 +{
 +  "presents": "présente",
 +  "Play": "Jouer",
@@ -1073,14 +1119,37 @@ index 0000000..331997d
 +  "This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.": "Cette ISO se trouve dans le dossier de l’application. Déplacez-la hors de ce dossier avant de jouer pour la préserver des mises à jour du Store. Aucune seconde copie permanente n’est nécessaire.",
 +  "No items": "Aucun élément",
 +  "Source changed during move. Both files were retained.": "Le fichier source a changé pendant le déplacement. Les deux fichiers sont conservés.",
-+  "The ISO is protected, but its original could not be removed. Both files were retained.": "L’ISO est à l’abri hors du dossier de l’application, mais l’original n’a pas pu être supprimé. Les deux fichiers sont conservés."
++  "The ISO is protected, but its original could not be removed. Both files were retained.": "L’ISO est à l’abri hors du dossier de l’application, mais l’original n’a pas pu être supprimé. Les deux fichiers sont conservés.",
++  "Save folder": "Dossier des sauvegardes",
++  "Copy to internal SSD and use": "Copier sur le SSD interne et utiliser",
++  "Use directly": "Utiliser directement",
++  "Use this folder": "Utiliser ce dossier",
++  "Copy current saves and use": "Copier les sauvegardes actuelles et utiliser",
++  "Operation failed. Original files were retained.": "Échec de l’opération. Les fichiers d’origine ont été conservés.",
++  "Copying saves...": "Copie des sauvegardes…",
++  "Copying ISO...": "Copie de l’ISO…",
++  "Verifying files...": "Vérification des fichiers…",
++  "Choose a folder for saves. Use its existing saves or copy your current saves there. Changes require a restart.": "Choisissez un dossier. Utilisez ses sauvegardes ou copiez-y les sauvegardes actuelles. Redémarrage requis.",
++  "Choose a folder for saves. Restart the app before copying saves from a running game.": "Choisissez un dossier. Redémarrez l’application avant de copier les sauvegardes d’une partie en cours.",
++  "Copy this ISO to protected internal storage, or use it directly. Copying keeps the original on its drive.": "Copiez cette ISO dans le stockage interne protégé ou utilisez-la directement. La copie conserve l’original sur son lecteur.",
++  "Protected internal folder": "Dossier interne protégé",
++  "Save location only. Settings and textures stay in internal storage.": "Seul l’emplacement des sauvegardes change. Les paramètres et textures restent en mémoire interne.",
++  "Choose save folder": "Choisir le dossier des sauvegardes",
++  "Use default save folder": "Utiliser le dossier par défaut",
++  "Changes require a restart. Existing saves are never overwritten. Returning to the default folder uses its existing saves.": "Redémarrage requis. Les sauvegardes existantes ne sont jamais écrasées. Le dossier par défaut conserve ses propres sauvegardes.",
++  "Save folder unavailable. Connect its drive or choose another folder in Settings.": "Dossier des sauvegardes indisponible. Connectez son lecteur ou choisissez un autre dossier dans les paramètres.",
++  "Save folder unavailable. Connect its drive or choose it again in Settings.": "Dossier des sauvegardes indisponible. Connectez son lecteur ou sélectionnez-le à nouveau dans les paramètres.",
++  "Choose a save folder outside the application and ISO folders.": "Choisissez un dossier hors des dossiers de l’application et des ISO.",
++  "Save folder is not writable.": "Le dossier des sauvegardes n’est pas accessible en écriture.",
++  "Different saves already exist in this folder. Nothing was overwritten. Choose another folder or use its existing saves.": "Ce dossier contient d’autres sauvegardes. Rien n’a été écrasé. Choisissez un autre dossier ou utilisez ses sauvegardes.",
++  "Choose a separate save folder, not a parent or child of the current folder.": "Choisissez un dossier séparé, ni parent ni sous-dossier du dossier actuel."
 +}
 diff --git a/res/locales/it.json b/res/locales/it.json
 new file mode 100644
-index 0000000..268cb3b
+index 0000000..fcba524
 --- /dev/null
 +++ b/res/locales/it.json
-@@ -0,0 +1,296 @@
+@@ -0,0 +1,319 @@
 +{
 +  "presents": "presenta",
 +  "Play": "Gioca",
@@ -1375,7 +1444,30 @@ index 0000000..268cb3b
 +  "This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.": "Questa ISO si trova nella cartella dell’app. Spostala fuori prima di giocare per proteggerla dagli aggiornamenti dello Store. Non serve una seconda copia permanente.",
 +  "No items": "Nessun elemento",
 +  "Source changed during move. Both files were retained.": "Il file di origine è cambiato durante lo spostamento. Entrambi i file sono stati conservati.",
-+  "The ISO is protected, but its original could not be removed. Both files were retained.": "L’ISO è protetta, ma non è stato possibile rimuovere l’originale. Entrambi i file sono stati conservati."
++  "The ISO is protected, but its original could not be removed. Both files were retained.": "L’ISO è protetta, ma non è stato possibile rimuovere l’originale. Entrambi i file sono stati conservati.",
++  "Save folder": "Cartella dei salvataggi",
++  "Copy to internal SSD and use": "Copia su SSD interno e usa",
++  "Use directly": "Usa direttamente",
++  "Use this folder": "Usa questa cartella",
++  "Copy current saves and use": "Copia i salvataggi attuali e usa",
++  "Operation failed. Original files were retained.": "Operazione non riuscita. I file originali sono stati conservati.",
++  "Copying saves...": "Copia dei salvataggi…",
++  "Copying ISO...": "Copia dell’ISO…",
++  "Verifying files...": "Verifica dei file…",
++  "Choose a folder for saves. Use its existing saves or copy your current saves there. Changes require a restart.": "Scegli una cartella. Usa i salvataggi esistenti o copia quelli attuali. È necessario riavviare.",
++  "Choose a folder for saves. Restart the app before copying saves from a running game.": "Scegli una cartella. Riavvia l’app prima di copiare i salvataggi di una partita in corso.",
++  "Copy this ISO to protected internal storage, or use it directly. Copying keeps the original on its drive.": "Copia questa ISO nella memoria interna protetta o usala direttamente. L’originale rimane sulla sua unità.",
++  "Protected internal folder": "Cartella interna protetta",
++  "Save location only. Settings and textures stay in internal storage.": "Cambia solo la posizione dei salvataggi. Impostazioni e texture restano nella memoria interna.",
++  "Choose save folder": "Scegli cartella dei salvataggi",
++  "Use default save folder": "Usa cartella predefinita",
++  "Changes require a restart. Existing saves are never overwritten. Returning to the default folder uses its existing saves.": "È necessario riavviare. I salvataggi esistenti non vengono sovrascritti. Tornando alla cartella predefinita si usano i suoi salvataggi.",
++  "Save folder unavailable. Connect its drive or choose another folder in Settings.": "Cartella dei salvataggi non disponibile. Collega l’unità o scegli un’altra cartella nelle impostazioni.",
++  "Save folder unavailable. Connect its drive or choose it again in Settings.": "Cartella dei salvataggi non disponibile. Collega l’unità o selezionala di nuovo nelle impostazioni.",
++  "Choose a save folder outside the application and ISO folders.": "Scegli una cartella esterna alle cartelle dell’applicazione e delle ISO.",
++  "Save folder is not writable.": "Impossibile scrivere nella cartella dei salvataggi.",
++  "Different saves already exist in this folder. Nothing was overwritten. Choose another folder or use its existing saves.": "Questa cartella contiene salvataggi diversi. Nulla è stato sovrascritto. Scegli un’altra cartella o usa i salvataggi esistenti.",
++  "Choose a separate save folder, not a parent or child of the current folder.": "Scegli una cartella separata, non una cartella superiore o secondaria di quella attuale."
 +}
 diff --git a/res/rml/prelaunch.rcss b/res/rml/prelaunch.rcss
 index 72151a0..59de14e 100644
@@ -1604,35 +1696,74 @@ index 0000000..ad41bb8
 +          Mtx* parent = nullptr);
 +}
 +#endif
+diff --git a/src/dusk/save_manager.cpp b/src/dusk/save_manager.cpp
+index 3cdfc47..8366399 100644
+--- a/src/dusk/save_manager.cpp
++++ b/src/dusk/save_manager.cpp
+@@ -1,3 +1,10 @@
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
+ #include "save_manager.hpp"
+ 
+ #include "aurora/card.h"
+@@ -793,6 +800,12 @@ ValueResult<Storage> resolve_storage(
+                                                                  StorageKind::RawImage;
+         storage.mounted = true;
+     }
++#ifdef __PROSPERO__
++    try {
++        storage.path = ps5_storage::card_path(std::string(game),storage.kind == StorageKind::RawImage,channel);
++    } catch (const std::exception& error) { return {failure(error.what()), {}}; }
++    return {success(), std::move(storage)};
++#else
+     const std::string gameName{game};
+     const auto cardType = storage.kind == StorageKind::GciDirectory ? AURORA_CARD_GCI_DIRECTORY :
+                                                                       AURORA_CARD_RAW_IMAGE;
+@@ -808,6 +821,7 @@ ValueResult<Storage> resolve_storage(
+     }
+     storage.path = borealis::io::fs_path_from_utf8(path.data());
+     return {success(), std::move(storage)};
++#endif
+ }
+ 
+ ValueResult<std::vector<SaveIdentity>> list_saves(
 diff --git a/src/dusk/settings.cpp b/src/dusk/settings.cpp
-index f595544..b0eea0a 100644
+index f595544..367db07 100644
 --- a/src/dusk/settings.cpp
 +++ b/src/dusk/settings.cpp
-@@ -179,6 +179,7 @@ UserSettings g_userSettings = {
+@@ -179,6 +179,8 @@ UserSettings g_userSettings = {
          .isoPath {"backend.isoPath", ""},
          .isoVerification {"backend.isoVerification", DiscVerificationState::Unknown},
          .graphicsBackend {"backend.graphicsBackend", "auto"},
 +        .menuLanguage {"backend.menuLanguage", ""},
++        .ps5SaveDirectory {"backend.ps5SaveDirectory", ""},
          .skipPreLaunchUI {"backend.skipPreLaunchUI", false},
          .showPipelineCompilation {"backend.showPipelineCompilation", true},
          .wasPresetChosen {"backend.wasPresetChosen", false},
-@@ -400,6 +401,7 @@ void registerSettings() {
+@@ -400,6 +402,8 @@ void registerSettings() {
      Register(g_userSettings.backend.isoPath);
      Register(g_userSettings.backend.isoVerification);
      Register(g_userSettings.backend.graphicsBackend);
 +    Register(g_userSettings.backend.menuLanguage);
++    Register(g_userSettings.backend.ps5SaveDirectory);
      Register(g_userSettings.backend.skipPreLaunchUI);
      Register(g_userSettings.backend.showPipelineCompilation);
      Register(g_userSettings.backend.wasPresetChosen);
 diff --git a/src/dusk/settings.h b/src/dusk/settings.h
-index 980bc2b..148b2e5 100644
+index 980bc2b..051007e 100644
 --- a/src/dusk/settings.h
 +++ b/src/dusk/settings.h
-@@ -340,6 +340,7 @@ struct UserSettings {
+@@ -340,6 +340,8 @@ struct UserSettings {
          ConfigVar<std::string> isoPath;
          ConfigVar<DiscVerificationState> isoVerification;
          ConfigVar<std::string> graphicsBackend;
 +        ConfigVar<std::string> menuLanguage;
++        ConfigVar<std::string> ps5SaveDirectory;
          ConfigVar<bool> skipPreLaunchUI;
          ConfigVar<bool> showPipelineCompilation;
          ConfigVar<bool> wasPresetChosen;
@@ -1891,7 +2022,7 @@ index 8bdc05f..adb928b 100644
  
  void Modal::set_body_text(const Rml::String& bodyText) {
 diff --git a/src/dusk/ui/prelaunch.cpp b/src/dusk/ui/prelaunch.cpp
-index cadb742..cc5fb58 100644
+index cadb742..ba696b3 100644
 --- a/src/dusk/ui/prelaunch.cpp
 +++ b/src/dusk/ui/prelaunch.cpp
 @@ -1,4 +1,11 @@
@@ -1925,16 +2056,18 @@ index cadb742..cc5fb58 100644
      sUpdateCheck = borealis::update::check_latest_github_release(AppInfo);
  }
  
-@@ -784,23 +796,32 @@ void ensure_initialized() noexcept {
+@@ -784,23 +796,37 @@ void ensure_initialized() noexcept {
          verification_from_config(getSettings().backend.isoVerification.getValue());
      state.initialLanguage = getSettings().game.language;
      state.initialGraphicsBackend = getSettings().backend.graphicsBackend;
 +    state.initialMenuLanguage = getSettings().backend.menuLanguage;
++    state.initialSaveDirectory = getSettings().backend.ps5SaveDirectory;
      state.initialCardFileType = getSettings().backend.cardFileType;
      state.errorString.clear();
      state.initialized = true;
 +#ifdef __PROSPERO__
 +    if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR")) state.errorString = error;
++    if (const char* error = std::getenv("DUSK_PS5_SAVE_ERROR")) state.errorString = error;
 +#endif
      refresh_configured_disc_state();
  }
@@ -1954,11 +2087,14 @@ index cadb742..cc5fb58 100644
  }
  
  bool is_restart_pending() noexcept {
++#ifdef __PROSPERO__
++    if (prelaunch_state().saveDirectoryRestartPending || getSettings().backend.ps5SaveDirectory.getValue() != prelaunch_state().initialSaveDirectory) return true;
++#endif
 +    if (getSettings().backend.menuLanguage.getValue() != prelaunch_state().initialMenuLanguage) return true;
      const auto& state = prelaunch_state();
      if (!state.activeDiscPath.empty() && state.configuredDiscPath != state.activeDiscPath) {
          return true;
-@@ -852,6 +873,9 @@ void Prelaunch::refresh_menu_buttons() {
+@@ -852,6 +878,9 @@ void Prelaunch::refresh_menu_buttons() {
  
  Prelaunch::Prelaunch() : Document(kDocumentSource, false, DocumentScope::Prelaunch) {
      mRoot = mDocument->GetElementById("root");
@@ -1968,24 +2104,39 @@ index cadb742..cc5fb58 100644
      ensure_initialized();
      begin_update_check();
  
+@@ -900,6 +929,12 @@ void Prelaunch::build_menu_buttons() {
+         gamemode::getGameModeManager().setGameModeToPrevious();
+ 
+         auto playButton = std::make_unique<GameModeButton>(menuList, [this] {
++#ifdef __PROSPERO__
++            if (!ps5_storage::save_folder_ready()) {
++                prelaunch_state().errorString = localization::translate("Save folder unavailable. Connect its drive or choose another folder in Settings.");
++                return;
++            }
++#endif
+             if (prelaunch_state().activeDiscPath.empty()) {
+                 open_iso_picker();
+                 return;
 diff --git a/src/dusk/ui/prelaunch.hpp b/src/dusk/ui/prelaunch.hpp
-index 3929621..5bc2880 100644
+index 3929621..86d8579 100644
 --- a/src/dusk/ui/prelaunch.hpp
 +++ b/src/dusk/ui/prelaunch.hpp
-@@ -58,6 +58,7 @@ struct PrelaunchState {
+@@ -58,6 +58,9 @@ struct PrelaunchState {
      GameLanguage unavailableLanguage = GameLanguage::English;
      bool pendingLanguageUnavailableNotice = false;
      std::string initialGraphicsBackend;
 +    std::string initialMenuLanguage;
++    std::string initialSaveDirectory;
++    bool saveDirectoryRestartPending = false;
      int initialCardFileType = 0;
      std::string errorString;
      std::string pendingDiscPath;
 diff --git a/src/dusk/ui/ps5_disc_picker.cpp b/src/dusk/ui/ps5_disc_picker.cpp
 new file mode 100644
-index 0000000..3dfb3a4
+index 0000000..4b01c3d
 --- /dev/null
 +++ b/src/dusk/ui/ps5_disc_picker.cpp
-@@ -0,0 +1,291 @@
+@@ -0,0 +1,334 @@
 +#include "ps5_disc_picker.hpp"
 +#ifdef __PROSPERO__
 +#include "localization.hpp"
@@ -2020,11 +2171,12 @@ index 0000000..3dfb3a4
 +
 +class FileBrowser final : public WindowSmall {
 +public:
-+    explicit FileBrowser(Selected selected) : WindowSmall("modal"), mSelected(std::move(selected)) {
++    explicit FileBrowser(Selected selected, bool saves=false, bool canCopy=true)
++        : WindowSmall("modal"), mSelected(std::move(selected)), mSaves(saves), mCanCopy(canCopy) {
 +        mRoot->SetProperty("width","80vw");
 +        mRoot->SetProperty("max-width","1000dp");
 +        auto* header = append(mDialog,"modal-header");
-+        append_text(append(header,"modal-title"),"Select Disc Image");
++        append_text(append(header,"modal-title"),mSaves?"Save folder":"Select Disc Image");
 +        auto* body = append(mDialog,"modal-body");
 +        mHelp = append(body,"div");
 +        mPath = append(body,"file-path");
@@ -2039,10 +2191,21 @@ index 0000000..3dfb3a4
 +        mList->root()->SetProperty("height","34vh");
 +        mList->root()->SetProperty("flex","0 0 auto");
 +        auto* actions = append(mDialog,"modal-actions");
++        actions->SetProperty("flex-wrap","wrap");
 +        mPlacesButton = button(actions,"Locations",[this] { if (!mBusy) locations(); });
 +        mUpButton = button(actions,"Back",[this] { if (!mBusy) back(); });
 +        mMoveButton = button(actions,"Move and use ISO",[this] {
 +            if (!mBusy && !mAwaitMove.empty()) begin(Mode::Move,mAwaitMove);
++        });
++        mCopyButton = button(actions,"Copy to internal SSD and use",[this] {
++            if (!mBusy && !mAwaitMove.empty()) begin(Mode::Copy,mAwaitMove);
++        });
++        mDirectButton = button(actions,"Use directly",[this] {
++            if (!mBusy && !mAwaitMove.empty()) { const auto path=mAwaitMove.string(); auto selected=mSelected; close(); selected(path); }
++        });
++        mUseFolderButton = button(actions,"Use this folder",[this] { if (!mBusy && !mFolder.empty()) begin(Mode::SaveExisting,mFolder); });
++        mCopySavesButton = button(actions,"Copy current saves and use",[this] {
++            if (!mBusy && mCanCopy && !mFolder.empty()) begin(Mode::SaveCopy,mFolder);
 +        });
 +        mCancelButton = button(actions,"Cancel",[this] { cancel(); });
 +        locations(); // no directory scan, import, or ISO copy on opening
@@ -2071,7 +2234,10 @@ index 0000000..3dfb3a4
 +                            std::lock_guard guard(mMutex); mProgress=value; return true;
 +                        };
 +                        if (mode==Mode::Browse) mResultRows=ps5_storage::browse(path,progress);
-+                        else mResultPath=ps5_storage::move_selected(path,progress);
++                        else if (mode==Mode::Move) mResultPath=ps5_storage::move_selected(path,progress);
++                        else if (mode==Mode::Copy) mResultPath=ps5_storage::copy_selected(path,progress);
++                        else mResultPath=ps5_storage::prepare_save_folder(path,
++                            mode==Mode::SaveCopy?ps5_storage::save_folder():fs::path{},progress);
 +                    } catch (const std::exception& error) { mError=error.what(); }
 +                      catch (...) { mError="Unable to read the selected file."; }
 +                    mDone.store(true,std::memory_order_release);
@@ -2085,19 +2251,19 @@ index 0000000..3dfb3a4
 +            if (mWorker.joinable()) mWorker.join();
 +            mBusy=false;
 +            if (mCancel.load(std::memory_order_relaxed)) { close(); return; }
-+            if (mError.empty() && mMode==Mode::Move) {
++            if (mError.empty() && mMode!=Mode::Browse) {
 +                auto selected=mSelected;
 +                const auto path=mResultPath.string();
 +                close(); selected(path); return;
 +            }
 +            if (mMode==Mode::Browse && mError.empty()) {
 +                mRows.clear();
-+                for (const auto& entry:mResultRows) mRows.push_back({entry.path,entry.directory,
++                for (const auto& entry:mResultRows) if (!mSaves || entry.directory) mRows.push_back({entry.path,entry.directory,
 +                    entry.path.filename().string()+(entry.directory?"/":"")});
 +                show_rows();
 +            } else {
 +                show_rows();
-+                set_text_content(mStage,mMode==Mode::Browse?"Cannot open this folder.":"Could not move this ISO.");
++                set_text_content(mStage,mMode==Mode::Browse?"Cannot open this folder.":"Operation failed. Original files were retained.");
 +                set_text_content(mDetail,mError);
 +            }
 +            focus();
@@ -2106,8 +2272,8 @@ index 0000000..3dfb3a4
 +        if (mCancel.load(std::memory_order_relaxed)) return;
 +        ps5_storage::Progress state;
 +        { std::lock_guard guard(mMutex); state=mProgress; }
-+        const char* label=state.phase==ps5_storage::Phase::Copy?"Moving selected ISO...":
-+            state.phase==ps5_storage::Phase::Verify?"Verifying moved ISO...":"Reading folder...";
++        const char* label=state.phase==ps5_storage::Phase::Copy?(mSaves?"Copying saves...":"Copying ISO..."):
++            state.phase==ps5_storage::Phase::Verify?"Verifying files...":"Reading folder...";
 +        set_text_content(mStage,label);
 +        if (state.total) {
 +            const auto fraction=std::clamp(float(state.completed)/float(state.total),0.f,1.f);
@@ -2126,7 +2292,7 @@ index 0000000..3dfb3a4
 +    }
 +    bool focus() override {
 +        if (mBusy) return mCancelButton->focus();
-+        if (!mAwaitMove.empty()) return mMoveButton->focus();
++        if (!mAwaitMove.empty()) return mManaged?mMoveButton->focus():mCopyButton->focus();
 +        return mList->focus() || mUpButton->focus() || mCancelButton->focus();
 +    }
 +protected:
@@ -2140,7 +2306,11 @@ index 0000000..3dfb3a4
 +        std::vector<Button*> buttons;
 +        if (mAwaitMove.empty()) buttons.push_back(mPlacesButton.get());
 +        buttons.push_back(mUpButton.get());
-+        if (!mAwaitMove.empty()) buttons.push_back(mMoveButton.get());
++        if (!mAwaitMove.empty()) {
++            if (mManaged) buttons.push_back(mMoveButton.get());
++            else { buttons.push_back(mCopyButton.get()); buttons.push_back(mDirectButton.get()); }
++        }
++        if (mSaves && !mFolder.empty()) { buttons.push_back(mUseFolderButton.get()); buttons.push_back(mCopySavesButton.get()); }
 +        buttons.push_back(mCancelButton.get());
 +        const auto target=event.GetTargetElement();
 +        auto current=std::find_if(buttons.begin(),buttons.end(),[target](Button* b) { return b->contains(target); });
@@ -2156,7 +2326,7 @@ index 0000000..3dfb3a4
 +        return handled;
 +    }
 +private:
-+    enum class Mode { Browse,Move };
++    enum class Mode { Browse,Move,Copy,SaveExisting,SaveCopy };
 +    std::unique_ptr<Button> button(Rml::Element* parent,const char* text,ButtonCallback pressed) {
 +        auto result=std::make_unique<Button>(parent,text);
 +        result->root()->SetClass("modal-btn",true);
@@ -2171,7 +2341,15 @@ index 0000000..3dfb3a4
 +        mPlacesButton->root()->SetProperty("display","block");
 +        mPlacesButton->set_disabled(false);
 +        mUpButton->set_disabled(mFolder.empty());
-+        set_text_content(mHelp,"Open a folder and choose your ISO.");
++        mCopyButton->root()->SetProperty("display","none");
++        mDirectButton->root()->SetProperty("display","none");
++        mUseFolderButton->root()->SetProperty("display",mSaves && !mFolder.empty()?"block":"none");
++        mCopySavesButton->root()->SetProperty("display",mSaves && !mFolder.empty()?"block":"none");
++        mCopySavesButton->set_disabled(!mCanCopy || !ps5_storage::save_folder_ready());
++        set_text_content(mHelp,mSaves?
++            (mCanCopy?"Choose a folder for saves. Use its existing saves or copy your current saves there. Changes require a restart.":
++             "Choose a folder for saves. Restart the app before copying saves from a running game."):
++            "Open a folder and choose your ISO.");
 +        set_text_content(mPath,mFolder.empty()?localization::translate("Locations"):mFolder.string());
 +    }
 +    void show_rows() {
@@ -2188,9 +2366,9 @@ index 0000000..3dfb3a4
 +        auto add=[this](const char* label,const fs::path& path) {
 +            if (!path.empty()) mRows.push_back({path,true,localization::translate(label)+"  ("+path.string()+")"});
 +        };
-+        const auto last=fs::path(getSettings().backend.isoPath.getValue()).parent_path();
++        const auto last=mSaves?ps5_storage::save_folder():fs::path(getSettings().backend.isoPath.getValue()).parent_path();
 +        if (!last.empty()) add("Last used folder",last);
-+        if (const char* images=std::getenv("DUSK_PS5_IMAGES")) add("Protected ISOs",images);
++        if (!mSaves) if (const char* images=std::getenv("DUSK_PS5_IMAGES")) add("Protected ISOs",images);
 +        add("USB 0","/mnt/usb0"); add("USB 1","/mnt/usb1");
 +        add("Data storage","/data");
 +        const char* app=std::getenv("DUSK_PS5_APP_ROOT");
@@ -2209,15 +2387,18 @@ index 0000000..3dfb3a4
 +        const auto row=mRows[key];
 +        if (row.directory) { begin(Mode::Browse,row.path); return; }
 +        try {
-+            if (ps5_storage::requires_move(row.path)) {
++            if (!ps5_storage::is_internal_image(row.path)) {
++                mManaged=ps5_storage::requires_move(row.path);
 +                mAwaitMove=row.path;
 +                mList->root()->SetProperty("display","none");
 +                mPlacesButton->root()->SetProperty("display","none");
-+                mMoveButton->root()->SetProperty("display","block");
++                mMoveButton->root()->SetProperty("display",mManaged?"block":"none");
++                mCopyButton->root()->SetProperty("display",mManaged?"none":"block");
++                mDirectButton->root()->SetProperty("display",mManaged?"none":"block");
 +                mUpButton->set_disabled(false);
-+                set_text_content(mHelp,"This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.");
++                set_text_content(mHelp,mManaged?"This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.":"Copy this ISO to protected internal storage, or use it directly. Copying keeps the original on its drive.");
 +                set_text_content(mPath,row.path.string());
-+                mMoveButton->focus(); return;
++                focus(); return;
 +            }
 +            auto selected=mSelected;
 +            close(); selected(row.path.string()); // no copy for USB or external folders
@@ -2235,9 +2416,13 @@ index 0000000..3dfb3a4
 +        mList->root()->SetProperty("display","none");
 +        mBar->SetProperty("display","block"); mBar->SetAttribute("value",0.f);
 +        mMoveButton->root()->SetProperty("display","none");
++        mCopyButton->root()->SetProperty("display","none");
++        mDirectButton->root()->SetProperty("display","none");
++        mUseFolderButton->root()->SetProperty("display","none");
++        mCopySavesButton->root()->SetProperty("display","none");
 +        mPlacesButton->set_disabled(true); mUpButton->set_disabled(true);
 +        set_text_content(mPath,path.string());
-+        set_text_content(mStage,mode==Mode::Browse?"Reading folder...":"Moving selected ISO...");
++        set_text_content(mStage,mode==Mode::Browse?"Reading folder...":mSaves?"Copying saves...":"Copying ISO...");
 +        set_text_content(mDetail,"");
 +        mCancelButton->focus();
 +    }
@@ -2251,6 +2436,7 @@ index 0000000..3dfb3a4
 +        mFinished=true; browser_open=false; pop();
 +    }
 +    Selected mSelected;
++    bool mSaves=false,mCanCopy=true,mManaged=false;
 +    std::thread mWorker;
 +    std::mutex mMutex;
 +    ps5_storage::Progress mProgress;
@@ -2264,7 +2450,7 @@ index 0000000..3dfb3a4
 +    unsigned mFrames=0,mPulse=0;
 +    Rml::Element *mHelp=nullptr,*mPath=nullptr,*mStage=nullptr,*mBar=nullptr,*mDetail=nullptr;
 +    std::unique_ptr<List> mList;
-+    std::unique_ptr<Button> mPlacesButton,mUpButton,mMoveButton,mCancelButton;
++    std::unique_ptr<Button> mPlacesButton,mUpButton,mMoveButton,mCopyButton,mDirectButton,mUseFolderButton,mCopySavesButton,mCancelButton;
 +};
 +}
 +
@@ -2275,14 +2461,22 @@ index 0000000..3dfb3a4
 +        browser_open=true; host->push(std::move(window));
 +    }
 +}
++void open_ps5_save_folder_picker(Selected selected,bool canCopy) {
++    if (browser_open) return;
++    if (auto* host=top_document()) {
++        auto window=std::make_unique<FileBrowser>(std::move(selected),true,canCopy);
++        browser_open=true; host->push(std::move(window));
++    }
++}
++
 +}
 +#endif
 diff --git a/src/dusk/ui/ps5_disc_picker.hpp b/src/dusk/ui/ps5_disc_picker.hpp
 new file mode 100644
-index 0000000..cde1e98
+index 0000000..7e1d161
 --- /dev/null
 +++ b/src/dusk/ui/ps5_disc_picker.hpp
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,12 @@
 +#pragma once
 +#ifdef __PROSPERO__
 +#include <functional>
@@ -2292,18 +2486,75 @@ index 0000000..cde1e98
 +// Opens a controller folder browser over the existing menu image. External
 +// images stay in place; app-owned images require an explicit Move and use action.
 +void open_ps5_disc_picker(std::function<void(std::string)> on_selected);
++void open_ps5_save_folder_picker(std::function<void(std::string)> on_selected, bool can_copy);
 +}
 +#endif
+diff --git a/src/dusk/ui/saves_window.cpp b/src/dusk/ui/saves_window.cpp
+index 0f9bff3..415d3df 100644
+--- a/src/dusk/ui/saves_window.cpp
++++ b/src/dusk/ui/saves_window.cpp
+@@ -102,7 +102,8 @@ std::string mode_label(std::string_view saveName) {
+ 
+ save_manager::ValueResult<Context> context_for_save(const std::string& saveName) {
+     const auto& state = prelaunch_state();
+-    if (data::is_data_path_restart_pending() ||
++    if (state.saveDirectoryRestartPending || getSettings().backend.ps5SaveDirectory.getValue() != state.initialSaveDirectory ||
++        data::is_data_path_restart_pending() ||
+         (!state.activeDiscPath.empty() && state.configuredDiscPath != state.activeDiscPath))
+     {
+         return {{.message = "Restart required before managing saves."}, {}};
 diff --git a/src/dusk/ui/settings.cpp b/src/dusk/ui/settings.cpp
-index 45a710a..003a18c 100644
+index 45a710a..c59e7ac 100644
 --- a/src/dusk/ui/settings.cpp
 +++ b/src/dusk/ui/settings.cpp
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,13 @@
++#include "ps5_disc_picker.hpp"
++#include "m_Do/m_Do_MemCard.h"
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
 +#include "localization.hpp"
  #include "settings.hpp"
  
  #include "bool_button.hpp"
-@@ -1465,6 +1466,36 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
+@@ -641,6 +651,32 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
+                     }
+                     pane.add_rml("<br/>Changes require a restart.");
+                 });
++#ifdef __PROSPERO__
++            leftPane.register_control(
++                leftPane.add_select_button({
++                    .key = "Save folder",
++                    .getValue = [] {
++                        const auto& path = getSettings().backend.ps5SaveDirectory.getValue();
++                        return path.empty()?localization::translate("Protected internal folder"):path;
++                    },
++                    .isModified = [] { return getSettings().backend.ps5SaveDirectory.getValue() != prelaunch_state().initialSaveDirectory; },
++                }), rightPane, [](Pane& pane) {
++                    pane.add_text("Save location only. Settings and textures stay in internal storage.");
++                    pane.add_button("Choose save folder").on_pressed([] {
++                        open_ps5_save_folder_picker([](std::string path) {
++                            getSettings().backend.ps5SaveDirectory.setValue(std::move(path));
++                            prelaunch_state().saveDirectoryRestartPending = true;
++                            config::save();
++                        },!g_mDoMemCd_control.mInitialized);
++                    });
++                    pane.add_button("Use default save folder").on_pressed([] {
++                        getSettings().backend.ps5SaveDirectory.setValue("");
++                        prelaunch_state().saveDirectoryRestartPending = true;
++                        config::save();
++                    });
++                    pane.add_text("Changes require a restart. Existing saves are never overwritten. Returning to the default folder uses its existing saves.");
++                });
++#endif
+             leftPane.register_control(
+                 leftPane.add_select_button({
+                     .key = "Save File Type",
+@@ -1465,6 +1501,36 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
          auto& rightPane = add_child<Pane>(content, Pane::Type::Uncontrolled);
  
          leftPane.add_section("Dusklight");
@@ -2368,8 +2619,35 @@ index 88f19a5..227ecf2 100644
              return;
          }
      }
+diff --git a/src/m_Do/m_Do_MemCard.cpp b/src/m_Do/m_Do_MemCard.cpp
+index 4eb0b64..24671e0 100644
+--- a/src/m_Do/m_Do_MemCard.cpp
++++ b/src/m_Do/m_Do_MemCard.cpp
+@@ -1,3 +1,10 @@
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
+ /**
+  * m_Do_MemCard.cpp
+  * Memory Card Control
+@@ -82,6 +89,11 @@ void mDoMemCd_Ctrl_c::ThdInit() {
+         return;
+     }
+     CARDSetLoadType((CARDFileType)dusk::getSettings().backend.cardFileType.getValue());
++#ifdef __PROSPERO__
++    // Never fall back to empty internal saves when the selected USB drive is absent.
++    if (!ps5_storage::save_folder_ready()) return;
++    CARDSetBasePath(ps5_storage::save_folder().string().c_str(), -1);
++#endif
+ #endif
+ 
+ #if !PLATFORM_SHIELD
 diff --git a/src/m_Do/m_Do_main.cpp b/src/m_Do/m_Do_main.cpp
-index 58a1f3b..18fef59 100644
+index 58a1f3b..cfed5c3 100644
 --- a/src/m_Do/m_Do_main.cpp
 +++ b/src/m_Do/m_Do_main.cpp
 @@ -1,9 +1,17 @@
@@ -2423,11 +2701,19 @@ index 58a1f3b..18fef59 100644
      const auto dataPaths = dusk::data::initialize_data(standardOptions.userDir);
      dusk::ConfigPath = dataPaths.userPath;
      dusk::CachePath = dataPaths.cachePath;
-@@ -643,6 +677,26 @@ int game_main(int argc, char* argv[]) {
+@@ -643,6 +677,34 @@ int game_main(int argc, char* argv[]) {
  
      dusk::config::load_from_user_preferences();
      ApplyCVarOverrides(parsed_arg_options["cvar"]);
 +    dusk::ui::localization::initialize();
++#ifdef __PROSPERO__
++    try {
++        ps5_storage::activate_save_folder(dusk::getSettings().backend.ps5SaveDirectory.getValue());
++    } catch (const std::exception& error) {
++        setenv("DUSK_PS5_SAVE_ERROR",error.what(),1);
++        dusk::getSettings().backend.skipPreLaunchUI.setValue(false);
++    }
++#endif
 +#ifdef __PROSPERO__
 +    // Restore only the already chosen path. Directory discovery and expensive
 +    // ISO moves run only after an explicit request in the visible browser.
@@ -2450,7 +2736,7 @@ index 58a1f3b..18fef59 100644
      borealis::sentry::Options sentryOptions{
          .release = fmt::format("{}@{}", dusk::AppInfo.appName, BOREALIS_APP_DESCRIBE),
          .databaseDirectory = dusk::CachePath / "sentry",
-@@ -707,7 +761,21 @@ int game_main(int argc, char* argv[]) {
+@@ -707,7 +769,21 @@ int game_main(int argc, char* argv[]) {
          config.allowJoystickBackgroundEvents = dusk::getSettings().game.allowBackgroundInput;
          config.pauseOnFocusLost = dusk::getSettings().game.pauseOnFocusLost;
          config.imGuiInitCallback = &aurora_imgui_init_callback;
