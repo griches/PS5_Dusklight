@@ -1360,7 +1360,7 @@ index 09154d0..8a0524f 100644
      }
 diff --git a/src/dusk/ps5_buttons.cpp b/src/dusk/ps5_buttons.cpp
 new file mode 100644
-index 0000000..392f74c
+index 0000000..7c1d33c
 --- /dev/null
 +++ b/src/dusk/ps5_buttons.cpp
 @@ -0,0 +1,147 @@
@@ -1383,7 +1383,7 @@ index 0000000..392f74c
 +    Style style;
 +};
 +constexpr Resource resources[] = {
-+#include "generated-button-textures.inc"
++#include "../../../../ps5/art/generated-button-textures.inc"
 +};
 +std::atomic_bool available{false};
 +
