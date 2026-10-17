@@ -1,3 +1,5 @@
+> **Draft candidate — HOLD for console testing.** See [PAL/UI test notes](PAL-UI-TESTING.md) for the shared five-language menu, controller picker, progress display and Gary-style buttons.
+
 # Dusklight for PlayStation 5
 
 [![stars](https://img.shields.io/github/stars/griches/PS5_Dusklight?style=flat)](https://github.com/griches/PS5_Dusklight/stargazers)
@@ -48,8 +50,9 @@ Known limits:
   needs the Luau runtime does not run. An asset-only `.dusk` (textures, files
   that replace the disc's) put in `/data/homebrew/PPSA99305/mods/` is listed and
   can be switched on in the Mods menu. Online mods cannot be browsed.
-- **"Disc not verified" on the menu is expected.** The disc is found, not
-  chosen, so it is never hashed; and a `.ciso` leaves out the disc's filler
+- **"Disc not verified" on the menu can be expected.** An automatically found
+  disc has not yet been hashed; choosing it from the controller picker runs the
+  normal upstream verification. A `.ciso` leaves out the disc's filler
   data, so its hash could not match the original's anyway.
 - **The button symbols follow the default mapping.** The game draws a button as
   a coloured shape with a white letter, each letter a texture of its own; the
@@ -63,7 +66,7 @@ Known limits:
   these off too.
 - **Texture packs: loose files or a `.dusk`, `.png` or `.dds`.** Files named the
   way Dolphin names them (`tex1_256x128_e6a4c7be9bf48305_14.dds`) are picked up
-  from `/data/homebrew/PPSA99305/userdata/TwilitRealm/Dusklight/texture_replacements/`
+  from `/data/dusklight/PPSA99305/user/texture_replacements/`
   and its subfolders, or from the `textures/` folder of a `.dusk`. A `.dds` may
   be uncompressed 32-bit RGBA or BGRA, BC1 (DXT1), BC3 (DXT5), BC5 or BC7, with
   or without mipmaps; this port also takes the sRGB-tagged variants of those,
@@ -74,7 +77,12 @@ Known limits:
   been tried. The game makes that folder at its first start, and from this
   build on opens it to the FTP server at every start: with v0.2.0 an upload
   into it is refused until the folder's permissions are changed.
-- **No file dialog.** The disc image is found by where it is, not chosen.
+- **Disc selection uses a controller folder/file browser.** Navigate USB0/USB1
+  subfolders or /data, select an ISO/GCM/CISO and use it directly at that path.
+  No internal copy is required. No disc is copied or restored automatically.
+  App-local images require explicit **Move and use ISO** to protect them before
+  a future Store update. GameCube PAL `GZ2P01` uses upstream's PAL code/languages;
+  USA and Japan retain their own regions. All three require revision 0.
 
 ## Install
 
@@ -88,7 +96,12 @@ Build.) It contains no game data.
 - A PS5 that runs homebrew, with etaHEN (or an equivalent) loaded.
 - ShadowMountPlus, which shows the folders in `/data/homebrew` as titles on the
   home screen.
-- An FTP server on the console to copy files with (port 2121 here).
+- A way to copy files, such as a web file manager or an FTP server.
+- Write access to `/data`. If the title is sandboxed, the **Lapy owned-root daemon**
+  must already be running. Startup uses the cooperative filesystem request supplied
+  by this port's existing SDK pin, before worker threads start; it does not install
+  a daemon or change that SDK pin. A failed request blocks game launch and shows an
+  error instead of silently storing personal data inside the replaceable app folder.
 
 **Steps**
 
@@ -107,19 +120,38 @@ Build.) It contains no game data.
    Copy `sce_sys/icon0.png` with the first upload: ShadowMountPlus will not
    register a title without its icon, and after two failed tries it skips that
    title until it is restarted.
-3. Copy your disc image into the same folder, under any name ending in `.iso` or
-   `.ciso`:
+3. Put your `.iso`, `.gcm` or `.ciso` on a USB drive or a folder outside the
+   application, for example `/data/dusklight/PPSA99305/images/your-disc.iso`.
+   Subdirectories are supported. No internal copy is needed for USB play.
+4. Start Dusklight and open **Select Disc Image**. Navigate from **Locations** to
+   your disc, select it and let normal disc verification finish. The browser
+   stays over the illustrated menu, with cancelable folder-reading feedback.
+   With PAL, the pre-launch game-language setting offers German and the other
+   PAL languages. A changed disc/language can require closing and reopening.
 
-   ```text
-   /data/homebrew/PPSA99305/your-disc.iso
-   ```
+If an ISO is already beside `eboot.bin`, the browser offers **Move and use ISO**.
+Only this explicit action moves that selected disc to the persistent images
+folder. A same-filesystem rename needs no duplicate allocation. Across filesystems
+a temporary copy is byte-verified before removing the selected original, with
+copy/verification progress. Cancel/error retains the source. Other images are
+never moved. Different same-name images get numbered names without overwriting.
+No launch or directory scan bulk-copies ISOs or restores deleted copies.
 
-   It has to be there, not elsewhere in `/data`: a title can only see its own
-   folder. The game takes the first image it finds and remembers it.
-4. Wait a few seconds for "Dusklight" to appear on the home screen, and start it.
+Saves/settings live in `/data/dusklight/PPSA99305/user/`. Existing
+`userdata/TwilitRealm/Dusklight/` files, legacy/portable user data and matching
+Store-backup user data are imported without deleting originals. Protected current
+files take priority. This user-data migration does not import ISO images.
 
-Saves and settings are written to `/data/homebrew/PPSA99305/userdata/`. Copying a
-new build over the folder leaves them, and the disc image, alone.
+**Before the first upgrade from an old build, preserve images and userdata.**
+An installer can erase the app folder before the new code gets to run. Move an
+app-local ISO outside that folder before any later update, or select one directly
+from USB. A deliberately app-local ISO cannot survive replacement there. Files
+deleted by an older update cannot be recovered without a surviving backup.
+
+Earlier separate test builds passed manual PAL selection and startup.
+The new combined UI/progress candidate still needs its own console test and
+a real Store update has not been tested. Earlier USA runtime observations in the Status table describe the
+unmodified release, not proof of this patch's runtime behavior.
 
 **The disc image.** Dusklight's own terms apply: dump your own copy of the game
 ([how](https://wiki.dolphin-emu.org/index.php?title=Ripping_Games)). If your dump
@@ -160,6 +192,18 @@ ps5/tools/build.sh
 4. configures Dusklight's own CMake build with the SDK's toolchain and
    `ps5/cmake/ps5-game.cmake`, compiles about 3,000 files, links with RADV and
    writes `dist/PPSA99305/`.
+
+Run the standalone synthetic storage/disc tests on Linux with:
+
+```sh
+python3 ps5/tools/test-storage.py
+```
+
+They use this port's actual ISO/CISO reader with ASan/UBSan and cover all three
+GameCube regions, retained USB choices, old userdata layouts, fresh nested USB browsing, no automatic ISO copies,
++explicit moves, copy/verify cancellation across filesystems, same-name conflicts
++and replacement of the complete app folder. No game data is
+needed. These tests do not establish console sandbox/daemon behavior or gameplay.
 
 Other tools, all in `ps5/tools/`:
 
