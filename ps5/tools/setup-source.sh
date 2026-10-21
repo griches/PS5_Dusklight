@@ -39,3 +39,4 @@ apply() {
 apply "$dusklight" dusklight.patch
 apply "$dusklight/extern/aurora" aurora.patch
 apply "$dusklight/extern/borealis" borealis.patch
+apply "$dusklight" ui.patch
