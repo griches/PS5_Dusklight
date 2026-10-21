@@ -89,21 +89,22 @@ index 9104be8..fea29a1 100644
  extern AudioBootStrap VITAAUD_bootstrap;
  extern AudioBootStrap N3DSAUDIO_bootstrap;
 diff --git a/src/filesystem/unix/SDL_sysfilesystem.c b/src/filesystem/unix/SDL_sysfilesystem.c
-index a23d67b..1786134 100644
+index a23d67b..27b0470 100644
 --- a/src/filesystem/unix/SDL_sysfilesystem.c
 +++ b/src/filesystem/unix/SDL_sysfilesystem.c
-@@ -240,6 +240,10 @@ static char *GetExePath(void)
+@@ -240,6 +240,11 @@ static char *GetExePath(void)
  
  char *SDL_SYS_GetBasePath(void)
  {
 +#ifdef __PROSPERO__
-+    // PlayStation 5: a title's own folder is mounted at /app0
-+    return SDL_strdup("/app0/");
++    // Startup resolves the app mount before/after cooperative filesystem access.
++    const char *app_root = SDL_getenv("DUSK_PS5_APP_ROOT");
++    return SDL_strdup(app_root ? app_root : "/app0/");
 +#else
      char *path = GetExePath();
      if (!path) {
          return NULL;
-@@ -252,6 +256,7 @@ char *SDL_SYS_GetBasePath(void)
+@@ -252,6 +257,7 @@ char *SDL_SYS_GetBasePath(void)
  
      ptr = (char *) SDL_realloc(path, ((size_t) (ptr - path)) + 2);  // try to shrink this allocation down a little.
      return ptr ? ptr : path;  // return shrunk buffer if shrink worked out, unchanged original buffer if not.

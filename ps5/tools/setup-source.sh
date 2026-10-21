@@ -37,5 +37,6 @@ apply() {
     echo "setup-source.sh: applied $2" >&2
 }
 apply "$dusklight" dusklight.patch
+apply "$dusklight" iso.patch
 apply "$dusklight/extern/aurora" aurora.patch
 apply "$dusklight/extern/borealis" borealis.patch
