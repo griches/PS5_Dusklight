@@ -38,4 +38,5 @@ apply() {
 }
 apply "$dusklight" dusklight.patch
 apply "$dusklight/extern/aurora" aurora.patch
+apply "$dusklight" storage.patch
 apply "$dusklight/extern/borealis" borealis.patch

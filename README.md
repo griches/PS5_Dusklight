@@ -1,3 +1,10 @@
+> Personal-data storage changes in this proposal: saves/settings move to
+> `/data/dusklight/<TITLEID>/user/`, protected ISOs to sibling `images/`.
+> See [storage and upgrade instructions](ps5/STORAGE-CHANGES.md) before upgrading.
+> Existing data migration is once-only; ISOs are moved/copied only on explicit
+> request. Preserve personal files before the first upgrade. The original-release
+> install paths and observations below are historical where they differ.
+
 # Dusklight for PlayStation 5
 
 [![stars](https://img.shields.io/github/stars/griches/PS5_Dusklight?style=flat)](https://github.com/griches/PS5_Dusklight/stargazers)

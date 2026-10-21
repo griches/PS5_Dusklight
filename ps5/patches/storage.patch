@@ -1,0 +1,649 @@
+diff --git a/files.cmake b/files.cmake
+index 18b44da..8fbcde4 100644
+--- a/files.cmake
++++ b/files.cmake
+@@ -1561,2 +1561,3 @@ set(DUSK_FILES
+         src/dusk/save_manager.cpp
++        src/dusk/ui/ps5_storage_ui.cpp
+         src/dusk/save_manager.hpp
+diff --git a/src/dusk/save_manager.cpp b/src/dusk/save_manager.cpp
+index 3cdfc47..8366399 100644
+--- a/src/dusk/save_manager.cpp
++++ b/src/dusk/save_manager.cpp
+@@ -1 +1,8 @@
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
+ #include "save_manager.hpp"
+@@ -795,2 +802,8 @@ ValueResult<Storage> resolve_storage(
+     }
++#ifdef __PROSPERO__
++    try {
++        storage.path = ps5_storage::card_path(std::string(game),storage.kind == StorageKind::RawImage,channel);
++    } catch (const std::exception& error) { return {failure(error.what()), {}}; }
++    return {success(), std::move(storage)};
++#else
+     const std::string gameName{game};
+@@ -810,2 +823,3 @@ ValueResult<Storage> resolve_storage(
+     return {success(), std::move(storage)};
++#endif
+ }
+diff --git a/src/dusk/settings.cpp b/src/dusk/settings.cpp
+index f595544..9a54670 100644
+--- a/src/dusk/settings.cpp
++++ b/src/dusk/settings.cpp
+@@ -187,2 +187,3 @@ UserSettings g_userSettings = {
+         .cardFileType {"backend.cardFileType", static_cast<int>(CARD_GCIFOLDER)},
++        .ps5SaveDirectory {"backend.ps5SaveDirectory", ""},
+         .enableAdvancedSettings {"backend.enableAdvancedSettings", false},
+@@ -408,2 +409,3 @@ void registerSettings() {
+     Register(g_userSettings.backend.cardFileType);
++    Register(g_userSettings.backend.ps5SaveDirectory);
+     Register(g_userSettings.backend.enableAdvancedSettings);
+diff --git a/src/dusk/settings.h b/src/dusk/settings.h
+index 980bc2b..bcc571f 100644
+--- a/src/dusk/settings.h
++++ b/src/dusk/settings.h
+@@ -348,2 +348,3 @@ struct UserSettings {
+         ConfigVar<int> cardFileType;
++        ConfigVar<std::string> ps5SaveDirectory;
+         ConfigVar<bool> enableAdvancedSettings;
+diff --git a/src/dusk/ui/prelaunch.cpp b/src/dusk/ui/prelaunch.cpp
+index 2c4f17c..3438ab7 100644
+--- a/src/dusk/ui/prelaunch.cpp
++++ b/src/dusk/ui/prelaunch.cpp
+@@ -11,2 +11,11 @@
+ #include "dusk/settings.h"
++#include "ps5_storage_ui.hpp"
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
++
+ #include "dusk/ui/format.hpp"
+@@ -171,3 +180,3 @@ DiscVerificationState verification_to_config(iso::ValidationError validation) {
+ 
+-void begin_disc_verification(std::string path) noexcept {
++void begin_disc_verification_now(std::string path) noexcept {
+     if (path.empty()) {
+@@ -183,2 +192,12 @@ void begin_disc_verification(std::string path) noexcept {
+ 
++void begin_disc_verification(std::string path) noexcept {
++#ifdef __PROSPERO__
++    if (!path.empty() && !ps5_storage::is_internal_image(path)) {
++        open_ps5_disc_storage(std::move(path),[](std::string selected) { begin_disc_verification_now(std::move(selected)); });
++        return;
++    }
++#endif
++    begin_disc_verification_now(std::move(path));
++}
++
+ std::optional<DiscVerificationResult> take_finished_disc_verification() {
+@@ -792,4 +811,9 @@ void ensure_initialized() noexcept {
+     state.initialCardFileType = getSettings().backend.cardFileType;
++    state.initialSaveDirectory = getSettings().backend.ps5SaveDirectory;
+     state.errorString.clear();
+     state.initialized = true;
++#ifdef __PROSPERO__
++    if (const char* error=std::getenv("DUSK_PS5_STORAGE_ERROR")) state.errorString=error;
++    if (const char* error=std::getenv("DUSK_PS5_SAVE_ERROR")) state.errorString=error;
++#endif
+     refresh_configured_disc_state();
+@@ -821,2 +845,5 @@ bool is_restart_pending() noexcept {
+     }
++#ifdef __PROSPERO__
++    if (prelaunch_state().saveDirectoryRestartPending || getSettings().backend.ps5SaveDirectory.getValue()!=prelaunch_state().initialSaveDirectory) return true;
++#endif
+     if (g_mDoMemCd_control.mInitialized &&
+@@ -907,2 +934,8 @@ void Prelaunch::build_menu_buttons() {
+         auto playButton = std::make_unique<GameModeButton>(menuList, [this] {
++#ifdef __PROSPERO__
++            if (!ps5_storage::save_folder_ready()) {
++                prelaunch_state().errorString="Save folder unavailable. Connect its drive or choose another folder in Settings.";
++                return;
++            }
++#endif
+             if (prelaunch_state().activeDiscPath.empty()) {
+diff --git a/src/dusk/ui/prelaunch.hpp b/src/dusk/ui/prelaunch.hpp
+index 3929621..7eefb13 100644
+--- a/src/dusk/ui/prelaunch.hpp
++++ b/src/dusk/ui/prelaunch.hpp
+@@ -61,2 +61,4 @@ struct PrelaunchState {
+     int initialCardFileType = 0;
++    std::string initialSaveDirectory;
++    bool saveDirectoryRestartPending = false;
+     std::string errorString;
+diff --git a/src/dusk/ui/ps5_storage_ui.cpp b/src/dusk/ui/ps5_storage_ui.cpp
+new file mode 100644
+index 0000000..cefe1c1
+--- /dev/null
++++ b/src/dusk/ui/ps5_storage_ui.cpp
+@@ -0,0 +1,335 @@
++#include "ps5_storage_ui.hpp"
++#ifdef __PROSPERO__
++
++#include "list.hpp"
++#include "window.hpp"
++#include "format.hpp"
++#include "dusk/settings.h"
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#include <fmt/format.h>
++#include <algorithm>
++#include <atomic>
++#include <cstdlib>
++#include <mutex>
++#include <stdexcept>
++#include <thread>
++
++namespace dusk::ui {
++namespace {
++namespace fs = std::filesystem;
++bool browser_open = false;
++using Selected = std::function<void(std::string)>;
++
++struct Row {
++    fs::path path;
++    bool directory = false;
++    std::string label;
++};
++
++class FileBrowser final : public WindowSmall {
++public:
++    explicit FileBrowser(Selected selected, bool saves=false, bool canCopy=true, fs::path initialIso={})
++        : WindowSmall("modal"), mSelected(std::move(selected)), mSaves(saves), mCanCopy(canCopy) {
++        mRoot->SetProperty("width","80vw");
++        mRoot->SetProperty("max-width","1000dp");
++        auto* header = append(mDialog,"modal-header");
++        append_text(append(header,"modal-title"),mSaves?"Save folder":"Select Disc Image");
++        auto* body = append(mDialog,"modal-body");
++        mHelp = append(body,"div");
++        mPath = append(body,"file-path");
++        mPath->SetProperty("word-break","break-all");
++        mStage = append(body,"div");
++        mBar = append(body,"progress");
++        mBar->SetClass("info",true);
++        mDetail = append(body,"small");
++        mList = std::make_unique<List>(body,List::Props{
++            .items={}, .onPressed=[this](std::uint64_t key) { choose(key); },
++        });
++        mList->root()->SetProperty("height","34vh");
++        mList->root()->SetProperty("flex","0 0 auto");
++        auto* actions = append(mDialog,"modal-actions");
++        actions->SetProperty("flex-wrap","wrap");
++        mPlacesButton = button(actions,"Locations",[this] { if (!mBusy) locations(); });
++        mUpButton = button(actions,"Back",[this] { if (!mBusy) back(); });
++        mMoveButton = button(actions,"Move and use ISO",[this] {
++            if (!mBusy && !mAwaitMove.empty()) begin(Mode::Move,mAwaitMove);
++        });
++        mCopyButton = button(actions,"Copy to internal SSD and use",[this] {
++            if (!mBusy && !mAwaitMove.empty()) begin(Mode::Copy,mAwaitMove);
++        });
++        mDirectButton = button(actions,"Use directly",[this] {
++            if (!mBusy && !mAwaitMove.empty()) { const auto path=mAwaitMove.string(); auto selected=mSelected; close(); selected(path); }
++        });
++        mUseFolderButton = button(actions,"Use this folder",[this] { if (!mBusy && !mFolder.empty()) begin(Mode::SaveExisting,mFolder); });
++        mCopySavesButton = button(actions,"Copy current saves and use",[this] {
++            if (!mBusy && mCanCopy && !mFolder.empty()) begin(Mode::SaveCopy,mFolder);
++        });
++        mCancelButton = button(actions,"Cancel",[this] { cancel(); });
++        if(initialIso.empty()) locations();
++        else {mFolder=initialIso.parent_path();mRows.push_back({initialIso,false,initialIso.filename().string()});show_rows();choose(0);}
++    }
++    ~FileBrowser() override {
++        mCancel.store(true,std::memory_order_relaxed);
++        if (mWorker.joinable()) mWorker.join();
++        if (!mFinished) browser_open = false;
++    }
++    void update() override {
++        WindowSmall::update();
++        if (mFinished) return;
++        mList->update();
++        if (!mBusy) return;
++        if (mCancel.load(std::memory_order_relaxed) && !mWorker.joinable()) { close(); return; }
++        // Paint the menu and browser before accessing a possibly slow drive.
++        if (mQueued && ++mFrames >= 2) {
++            mQueued = false;
++            const auto mode=mMode;
++            const auto path=mTaskPath;
++            try {
++                mWorker=std::thread([this,mode,path] {
++                    try {
++                        const auto progress=[this](const ps5_storage::Progress& value) {
++                            if (mCancel.load(std::memory_order_relaxed)) return false;
++                            std::lock_guard guard(mMutex); mProgress=value; return true;
++                        };
++                        if (mode==Mode::Browse) mResultRows=ps5_storage::browse(path,progress);
++                        else if (mode==Mode::Move) mResultPath=ps5_storage::move_selected(path,progress);
++                        else if (mode==Mode::Copy) mResultPath=ps5_storage::copy_selected(path,progress);
++                        else mResultPath=ps5_storage::prepare_save_folder(path,
++                            mode==Mode::SaveCopy?ps5_storage::save_folder():fs::path{},progress);
++                    } catch (const std::exception& error) { mError=error.what(); }
++                      catch (...) { mError="Unable to read the selected file."; }
++                    mDone.store(true,std::memory_order_release);
++                });
++            } catch (const std::exception& error) {
++                mError=error.what(); mDone.store(true,std::memory_order_release);
++            }
++        }
++        ++mPulse;
++        if (mDone.load(std::memory_order_acquire)) {
++            if (mWorker.joinable()) mWorker.join();
++            mBusy=false;
++            if (mCancel.load(std::memory_order_relaxed)) { close(); return; }
++            if (mError.empty() && mMode!=Mode::Browse) {
++                auto selected=mSelected;
++                const auto path=mResultPath.string();
++                close(); selected(path); return;
++            }
++            if (mMode==Mode::Browse && mError.empty()) {
++                mRows.clear();
++                for (const auto& entry:mResultRows) if (!mSaves || entry.directory) mRows.push_back({entry.path,entry.directory,
++                    entry.path.filename().string()+(entry.directory?"/":"")});
++                show_rows();
++            } else {
++                show_rows();
++                set_text_content(mStage,mMode==Mode::Browse?"Cannot open this folder.":"Operation failed. Original files were retained.");
++                set_text_content(mDetail,mError);
++            }
++            focus();
++            return;
++        }
++        if (mCancel.load(std::memory_order_relaxed)) return;
++        ps5_storage::Progress state;
++        { std::lock_guard guard(mMutex); state=mProgress; }
++        const char* label=state.phase==ps5_storage::Phase::Copy?(mSaves?"Copying saves...":"Copying ISO..."):
++            state.phase==ps5_storage::Phase::Verify?"Verifying files...":"Reading folder...";
++        set_text_content(mStage,label);
++        if (state.total) {
++            const auto fraction=std::clamp(float(state.completed)/float(state.total),0.f,1.f);
++            mBar->SetAttribute("value",fraction);
++            if (state.phase==ps5_storage::Phase::Search)
++                set_text_content(mDetail,std::string("Files checked")+": "+fmt::format("{} / {}",state.completed,state.total));
++            else {
++                constexpr ByteFormat format{.gibFractionDigits=2,.mibFractionDigits=0};
++                set_text_content(mDetail,fmt::format("{} / {} ({:.0f}%)",format_bytes(state.completed,format),
++                    format_bytes(state.total,format),fraction*100.f));
++            }
++        } else {
++            mBar->SetAttribute("value",0.15f+0.7f*float(mPulse%120)/120.f);
++            set_text_content(mDetail,std::string("Files checked")+": "+std::to_string(state.completed));
++        }
++    }
++    bool focus() override {
++        if (mBusy) return mCancelButton->focus();
++        if (!mAwaitMove.empty()) return mManaged?mMoveButton->focus():mCopyButton->focus();
++        return mList->focus() || mUpButton->focus() || mCancelButton->focus();
++    }
++protected:
++    bool handle_nav_command(Rml::Event& event,NavCommand command) override {
++        if (command==NavCommand::Cancel || command==NavCommand::Menu) {
++            if (mBusy) cancel(); else back();
++            event.StopPropagation(); return true;
++        }
++        // List handles its rows; allow controller movement between the list
++        // and the footer, and between visible footer buttons.
++        std::vector<Button*> buttons;
++        if (mAwaitMove.empty()) buttons.push_back(mPlacesButton.get());
++        buttons.push_back(mUpButton.get());
++        if (!mAwaitMove.empty()) {
++            if (mManaged) buttons.push_back(mMoveButton.get());
++            else { buttons.push_back(mCopyButton.get()); buttons.push_back(mDirectButton.get()); }
++        }
++        if (mSaves && !mFolder.empty()) { buttons.push_back(mUseFolderButton.get()); buttons.push_back(mCopySavesButton.get()); }
++        buttons.push_back(mCancelButton.get());
++        const auto target=event.GetTargetElement();
++        auto current=std::find_if(buttons.begin(),buttons.end(),[target](Button* b) { return b->contains(target); });
++        bool handled=false;
++        if (command==NavCommand::Down && mList->contains(target)) handled=buttons.front()->focus();
++        else if (command==NavCommand::Up && current!=buttons.end() && !mBusy && mAwaitMove.empty()) handled=mList->focus_from(command);
++        else if (current!=buttons.end() && (command==NavCommand::Left || command==NavCommand::Right)) {
++            const int step=command==NavCommand::Left?-1:1;
++            for (int i=int(current-buttons.begin())+step;i>=0 && i<int(buttons.size());i+=step)
++                if (buttons[i]->focus()) { handled=true; break; }
++        }
++        if (handled) event.StopPropagation();
++        return handled;
++    }
++private:
++    enum class Mode { Browse,Move,Copy,SaveExisting,SaveCopy };
++    std::unique_ptr<Button> button(Rml::Element* parent,const char* text,ButtonCallback pressed) {
++        auto result=std::make_unique<Button>(parent,text);
++        result->root()->SetClass("modal-btn",true);
++        result->on_pressed(std::move(pressed));
++        return result;
++    }
++    void normal_view() {
++        mAwaitMove.clear();
++        mList->root()->SetProperty("display","flex");
++        mBar->SetProperty("display","none");
++        mMoveButton->root()->SetProperty("display","none");
++        mPlacesButton->root()->SetProperty("display","block");
++        mPlacesButton->set_disabled(false);
++        mUpButton->set_disabled(mFolder.empty());
++        mCopyButton->root()->SetProperty("display","none");
++        mDirectButton->root()->SetProperty("display","none");
++        mUseFolderButton->root()->SetProperty("display",mSaves && !mFolder.empty()?"block":"none");
++        mCopySavesButton->root()->SetProperty("display",mSaves && !mFolder.empty()?"block":"none");
++        mCopySavesButton->set_disabled(!mCanCopy || !ps5_storage::save_folder_ready());
++        set_text_content(mHelp,mSaves?
++            (mCanCopy?"Choose a folder for saves. Use its existing saves or copy your current saves there. Changes require a restart.":
++             "Choose a folder for saves. Restart the app before copying saves from a running game."):
++            "Open a folder and choose your ISO.");
++        set_text_content(mPath,mFolder.empty()?std::string("Locations"):mFolder.string());
++    }
++    void show_rows() {
++        normal_view();
++        set_text_content(mStage,""); set_text_content(mDetail,"");
++        std::vector<List::Item> items;
++        for (std::size_t i=0;i<mRows.size();++i) items.push_back({i,mRows[i].label});
++        mList->set_items(std::move(items));
++        mList->update();
++    }
++    void locations() {
++        if (mBusy) return;
++        mFolder.clear(); mRows.clear();
++        auto add=[this](const char* label,const fs::path& path) {
++            if (!path.empty()) mRows.push_back({path,true,std::string(label)+"  ("+path.string()+")"});
++        };
++        const auto last=mSaves?ps5_storage::save_folder():fs::path(getSettings().backend.isoPath.getValue()).parent_path();
++        if (!last.empty()) add("Last used folder",last);
++        if (!mSaves) if (const char* images=std::getenv("DUSK_PS5_IMAGES")) add("Protected ISOs",images);
++        add("USB 0","/mnt/usb0"); add("USB 1","/mnt/usb1");
++        add("Data storage","/data");
++        const char* app=std::getenv("DUSK_PS5_APP_ROOT");
++        add("Application folder",app?app:"/app0");
++        add("File system","/");
++        show_rows();
++    }
++    void back() {
++        if (!mAwaitMove.empty()) { show_rows(); return; }
++        if (mFolder.empty()) { close(); return; }
++        if (mFolder==mFolder.root_path()) locations();
++        else begin(Mode::Browse,mFolder.parent_path());
++    }
++    void choose(std::uint64_t key) {
++        if (mBusy || key>=mRows.size()) return;
++        const auto row=mRows[key];
++        if (row.directory) { begin(Mode::Browse,row.path); return; }
++        try {
++            if (!ps5_storage::is_internal_image(row.path)) {
++                mManaged=ps5_storage::requires_move(row.path);
++                mAwaitMove=row.path;
++                mList->root()->SetProperty("display","none");
++                mPlacesButton->root()->SetProperty("display","none");
++                mMoveButton->root()->SetProperty("display",mManaged?"block":"none");
++                mCopyButton->root()->SetProperty("display",mManaged?"none":"block");
++                mDirectButton->root()->SetProperty("display",mManaged?"none":"block");
++                mUpButton->set_disabled(false);
++                set_text_content(mHelp,mManaged?"This ISO is inside the app folder. Move it outside before using it so a store update cannot remove it. No permanent second copy is needed.":"Copy this ISO to protected internal storage, or use it directly. Copying keeps the original on its drive.");
++                set_text_content(mPath,row.path.string());
++                focus(); return;
++            }
++            auto selected=mSelected;
++            close(); selected(row.path.string()); // no copy for USB or external folders
++        } catch (const std::exception& error) { set_text_content(mStage,error.what()); }
++    }
++    void begin(Mode mode,const fs::path& requested) {
++        if (mBusy) return;
++        auto path=requested.lexically_normal();
++        while (path!=path.root_path() && path.filename().empty()) path=path.parent_path();
++        if (mode==Mode::Browse) { mFolder=path; mRows.clear(); }
++        mMode=mode; mTaskPath=path;
++        mBusy=true; mQueued=true; mFrames=0; mPulse=0;
++        mError.clear(); mResultRows.clear(); mResultPath.clear(); mProgress={};
++        mCancel.store(false,std::memory_order_relaxed); mDone.store(false,std::memory_order_relaxed);
++        mList->root()->SetProperty("display","none");
++        mBar->SetProperty("display","block"); mBar->SetAttribute("value",0.f);
++        mMoveButton->root()->SetProperty("display","none");
++        mCopyButton->root()->SetProperty("display","none");
++        mDirectButton->root()->SetProperty("display","none");
++        mUseFolderButton->root()->SetProperty("display","none");
++        mCopySavesButton->root()->SetProperty("display","none");
++        mPlacesButton->set_disabled(true); mUpButton->set_disabled(true);
++        set_text_content(mPath,path.string());
++        set_text_content(mStage,mode==Mode::Browse?"Reading folder...":mSaves?"Copying saves...":"Copying ISO...");
++        set_text_content(mDetail,"");
++        mCancelButton->focus();
++    }
++    void cancel() {
++        if (!mBusy) { close(); return; }
++        mCancel.store(true,std::memory_order_relaxed);
++        mCancelButton->set_text("Cancelling...");
++        mCancelButton->set_disabled(true);
++    }
++    void close() {
++        mFinished=true; browser_open=false; pop();
++    }
++    Selected mSelected;
++    bool mSaves=false,mCanCopy=true,mManaged=false;
++    std::thread mWorker;
++    std::mutex mMutex;
++    ps5_storage::Progress mProgress;
++    std::vector<Row> mRows;
++    std::vector<ps5_storage::BrowseEntry> mResultRows;
++    fs::path mFolder,mTaskPath,mAwaitMove,mResultPath;
++    std::string mError;
++    std::atomic_bool mDone{false},mCancel{false};
++    bool mBusy=false,mQueued=false,mFinished=false;
++    Mode mMode=Mode::Browse;
++    unsigned mFrames=0,mPulse=0;
++    Rml::Element *mHelp=nullptr,*mPath=nullptr,*mStage=nullptr,*mBar=nullptr,*mDetail=nullptr;
++    std::unique_ptr<List> mList;
++    std::unique_ptr<Button> mPlacesButton,mUpButton,mMoveButton,mCopyButton,mDirectButton,mUseFolderButton,mCopySavesButton,mCancelButton;
++};
++}
++
++void open_ps5_disc_storage(std::string path, Selected selected) {
++    if (browser_open) return;
++    if (auto* host=top_document()) {
++        auto window=std::make_unique<FileBrowser>(std::move(selected),false,true,fs::path(path));
++        browser_open=true; host->push(std::move(window));
++    }
++}
++void open_ps5_save_folder_picker(Selected selected,bool canCopy) {
++    if (browser_open) return;
++    if (auto* host=top_document()) {
++        auto window=std::make_unique<FileBrowser>(std::move(selected),true,canCopy);
++        browser_open=true; host->push(std::move(window));
++    }
++}
++
++}
++#endif
+diff --git a/src/dusk/ui/ps5_storage_ui.hpp b/src/dusk/ui/ps5_storage_ui.hpp
+new file mode 100644
+index 0000000..b9b94ff
+--- /dev/null
++++ b/src/dusk/ui/ps5_storage_ui.hpp
+@@ -0,0 +1,9 @@
++#pragma once
++#ifdef __PROSPERO__
++#include <functional>
++#include <string>
++namespace dusk::ui {
++void open_ps5_disc_storage(std::string path,std::function<void(std::string)> selected);
++void open_ps5_save_folder_picker(std::function<void(std::string)> selected,bool canCopy);
++}
++#endif
+diff --git a/src/dusk/ui/saves_window.cpp b/src/dusk/ui/saves_window.cpp
+index 0f9bff3..5f315d3 100644
+--- a/src/dusk/ui/saves_window.cpp
++++ b/src/dusk/ui/saves_window.cpp
+@@ -104,3 +104,4 @@ save_manager::ValueResult<Context> context_for_save(const std::string& saveName)
+     const auto& state = prelaunch_state();
+-    if (data::is_data_path_restart_pending() ||
++    if (state.saveDirectoryRestartPending || getSettings().backend.ps5SaveDirectory.getValue()!=state.initialSaveDirectory ||
++        data::is_data_path_restart_pending() ||
+         (!state.activeDiscPath.empty() && state.configuredDiscPath != state.activeDiscPath))
+diff --git a/src/dusk/ui/settings.cpp b/src/dusk/ui/settings.cpp
+index 45a710a..347ecad 100644
+--- a/src/dusk/ui/settings.cpp
++++ b/src/dusk/ui/settings.cpp
+@@ -18,2 +18,12 @@
+ #include "dusk/config.hpp"
++#include "ps5_storage_ui.hpp"
++#include "m_Do/m_Do_MemCard.h"
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
++
+ #include "dusk/data.hpp"
+@@ -643,2 +653,28 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
+                 });
++#ifdef __PROSPERO__
++            leftPane.register_control(
++                leftPane.add_select_button({
++                    .key = "Save folder",
++                    .getValue = [] {
++                        const auto& path = getSettings().backend.ps5SaveDirectory.getValue();
++                        return path.empty()?std::string("Protected internal folder"):path;
++                    },
++                    .isModified = [] { return getSettings().backend.ps5SaveDirectory.getValue() != prelaunch_state().initialSaveDirectory; },
++                }), rightPane, [](Pane& pane) {
++                    pane.add_text("Save location only. Settings and textures stay in internal storage.");
++                    pane.add_button("Choose save folder").on_pressed([] {
++                        open_ps5_save_folder_picker([](std::string path) {
++                            getSettings().backend.ps5SaveDirectory.setValue(std::move(path));
++                            prelaunch_state().saveDirectoryRestartPending = true;
++                            config::save();
++                        },!g_mDoMemCd_control.mInitialized);
++                    });
++                    pane.add_button("Use default save folder").on_pressed([] {
++                        getSettings().backend.ps5SaveDirectory.setValue("");
++                        prelaunch_state().saveDirectoryRestartPending = true;
++                        config::save();
++                    });
++                    pane.add_text("Changes require a restart. Existing saves are never overwritten. Returning to the default folder uses its existing saves.");
++                });
++#endif
+             leftPane.register_control(
+diff --git a/src/m_Do/m_Do_MemCard.cpp b/src/m_Do/m_Do_MemCard.cpp
+index 4eb0b64..24671e0 100644
+--- a/src/m_Do/m_Do_MemCard.cpp
++++ b/src/m_Do/m_Do_MemCard.cpp
+@@ -1 +1,8 @@
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
+ /**
+@@ -84,2 +91,7 @@ void mDoMemCd_Ctrl_c::ThdInit() {
+     CARDSetLoadType((CARDFileType)dusk::getSettings().backend.cardFileType.getValue());
++#ifdef __PROSPERO__
++    // Never fall back to empty internal saves when the selected USB drive is absent.
++    if (!ps5_storage::save_folder_ready()) return;
++    CARDSetBasePath(ps5_storage::save_folder().string().c_str(), -1);
++#endif
+ #endif
+diff --git a/src/m_Do/m_Do_main.cpp b/src/m_Do/m_Do_main.cpp
+index 0d91eff..68f38c5 100644
+--- a/src/m_Do/m_Do_main.cpp
++++ b/src/m_Do/m_Do_main.cpp
+@@ -1 +1,11 @@
++#ifdef __PROSPERO__
++#if __has_include("ps5_storage.h")
++#include "ps5_storage.h"
++#else
++#include "storage.h"
++#endif
++#endif
++#include <exception>
++#include <cstdlib>
++#include <stdexcept>
+ /**
+@@ -633,2 +643,28 @@ int game_main(int argc, char* argv[]) {
+ 
++#ifdef __PROSPERO__
++    // Do this after C++ static initialization, before any settings or saves open.
++    // The installer owns /app0; persistent personal data must live outside it.
++    try {
++        if (const char* error = std::getenv("DUSK_PS5_STORAGE_ERROR"))
++            throw std::runtime_error(error);
++        const char* app = std::getenv("DUSK_PS5_APP_ROOT");
++        const char* download = std::getenv("DUSK_PS5_DOWNLOAD_ROOT");
++        if (!app || !download) throw std::runtime_error("Cannot resolve this title's mounted folders");
++        const auto title = ps5_storage::title_id(std::filesystem::path(app) / "sce_sys/param.json");
++        const auto root = std::filesystem::path("/data/dusklight") / title;
++        const auto protectedData = ps5_storage::prepare({app, root,
++            std::filesystem::path("/data/prosperostore/previous") / title, download});
++        if (!protectedData.error.empty()) throw std::runtime_error(protectedData.error);
++        standardOptions.userDir = protectedData.user;
++        setenv("DUSK_PS5_IMAGES", protectedData.images.c_str(), 1);
++        const auto home = root.string();
++        SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "HOME", home.c_str(), true);
++        SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "XDG_DATA_HOME", protectedData.user.c_str(), true);
++    } catch (const std::exception& error) {
++        setenv("DUSK_PS5_STORAGE_ERROR", error.what(), 1);
++        // Show the error from a temporary config; never open old saves on failure.
++        const char* download = std::getenv("DUSK_PS5_DOWNLOAD_ROOT");
++        standardOptions.userDir = std::filesystem::path(download ? download : "/download0") / "dusklight-storage-error";
++    }
++#endif
+     const auto dataPaths = dusk::data::initialize_data(standardOptions.userDir);
+@@ -649,2 +685,30 @@ int game_main(int argc, char* argv[]) {
+     ApplyCVarOverrides(parsed_arg_options["cvar"]);
++#ifdef __PROSPERO__
++    try {
++        ps5_storage::activate_save_folder(dusk::getSettings().backend.ps5SaveDirectory.getValue());
++    } catch (const std::exception& error) {
++        setenv("DUSK_PS5_SAVE_ERROR",error.what(),1);
++        dusk::getSettings().backend.skipPreLaunchUI.setValue(false);
++    }
++#endif
++#ifdef __PROSPERO__
++    // Restore only the already chosen path. Directory discovery and expensive
++    // ISO moves run only after an explicit request in the visible browser.
++    {
++        const auto saved = dusk::getSettings().backend.isoPath.getValue();
++        const std::filesystem::path path(saved);
++        std::error_code ec;
++        const bool managed = !saved.empty() && !std::getenv("DUSK_PS5_STORAGE_ERROR") &&
++                             ps5_storage::requires_move(path);
++        if (!saved.empty() && (managed || !std::filesystem::is_regular_file(path,ec))) {
++            dusk::getSettings().backend.isoPath.setValue("");
++            dusk::getSettings().backend.isoVerification.setValue(dusk::DiscVerificationState::Unknown);
++        }
++    }
++    if (std::getenv("DUSK_PS5_STORAGE_ERROR")) {
++        dusk::getSettings().backend.isoPath.setValue("");
++        dusk::getSettings().backend.skipPreLaunchUI.setValue(false);
++    }
++#endif
++
+     borealis::sentry::Options sentryOptions{
+@@ -834,2 +898,13 @@ int game_main(int argc, char* argv[]) {
+ 
++#ifdef __PROSPERO__
++    // Legacy discovery must not bypass protection of an app-owned image.
++    {
++        const auto path=dusk::getSettings().backend.isoPath.getValue();
++        if (!path.empty() && !std::getenv("DUSK_PS5_STORAGE_ERROR") && ps5_storage::requires_move(path)) {
++            dusk::getSettings().backend.isoPath.setValue("");
++            dusk::getSettings().backend.isoVerification.setValue(dusk::DiscVerificationState::Unknown);
++            dusk::getSettings().backend.skipPreLaunchUI.setValue(false);
++        }
++    }
++#endif
+     bool skipPreLaunchUI = dusk::getSettings().backend.skipPreLaunchUI.getValue();
+@@ -903,2 +978,3 @@ int game_main(int argc, char* argv[]) {
+         }
++        if (forcePreLaunchUI) skipPreLaunchUI=false;
+         if (saveConfigBeforePrelaunch) {

@@ -33,7 +33,17 @@ set(CMAKE_CXX_COMPILER_LAUNCHER sh ${ps5}/tools/cc-init-array.sh)
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fexperimental-library>)
 
 # The console: klog, the pad, the title's exit, and the libc names a title cannot import
-add_library(ps5_platform STATIC ${ps5}/src/platform.c ${ps5}/src/shims.c ${ps5}/src/startup.c)
+add_library(ps5_platform STATIC ${ps5}/src/platform.c ${ps5}/src/shims.c ${ps5}/src/startup.c
+    ${ps5}/src/ps5_storage.cpp)
+target_compile_features(ps5_platform PRIVATE cxx_std_20)
+target_include_directories(ps5_platform PRIVATE ${ps5}/nod/include)
+# The patched upstream calls this PS5-only helper; keep the submodule pin unchanged.
+# Expose the storage helper only to its callers, not Dawn or other dependencies.
+foreach(storage_source IN ITEMS src/dusk/save_manager.cpp src/dusk/ui/prelaunch.cpp
+        src/dusk/ui/settings.cpp src/dusk/ui/ps5_storage_ui.cpp
+        src/m_Do/m_Do_MemCard.cpp src/m_Do/m_Do_main.cpp)
+    set_property(SOURCE "${CMAKE_SOURCE_DIR}/${storage_source}" APPEND PROPERTY INCLUDE_DIRECTORIES "${ps5}/src")
+endforeach()
 target_include_directories(ps5_platform PUBLIC ${ps5}/src)
 target_include_directories(ps5_platform PRIVATE ${SDL_DIR}/include)
 file(READ ${ps5}/sce_sys/param.json param_json)
